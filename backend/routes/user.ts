@@ -1,8 +1,10 @@
 import express, { Request, Response } from "express";
+import { z } from 'zod'
 import authenticateJwt, { generateToken, encrypt, decrypt } from "../middleware/auth";
 import { User, Problem } from "../db"
 
 const router = express.Router();
+
 
 router.post("/signup", async (req, res) => {
 	const { username, password } = req.body;

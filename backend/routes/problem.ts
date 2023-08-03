@@ -18,5 +18,13 @@ router.post("/publish", authenticateJwt, async (req: Request, res: Response) => 
 	} else res.status(400).send({ message: "Invalid request" });
 });
 
+router.get("/", authenticateJwt, async (req: Request, res: Response) => {
+	try {
+		let problems = await Problem.find({});
+		res.status(200).json(problems);
+	} catch (err) {
+		res.status(404).send({ message: "Not found", error: err });
+	}
+});
 
 export default router;

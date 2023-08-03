@@ -1,38 +1,106 @@
 import { Grid, Box, Typography } from "@mui/material";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { problemDescription } from "../store/selectors/problem";
+import { MoreVert, MoreHoriz } from "@mui/icons-material";
+import Description from "./editor/Description";
+import CodeEditor from "./editor/CodeEditor";
+import Console from "./editor/Console";
+import { useRef, useEffect } from 'react';
+import useResizer from "./hooks/useResizer";
 
 function Editor(): JSX.Element {
+
+	const refDescription = useRef(null);
+	const refRightPanel = useRef(null);
+	const refCodeEditor = useRef(null);
+	const refConsole = useRef(null);
+
+	const refVertical = useRef(null);
+	const refHorizontal = useRef(null);
+
+	useResizer(
+		refDescription,
+		refRightPanel,
+		refCodeEditor,
+		refConsole,
+		refVertical,
+		refHorizontal
+	);
+
 	return (
-		<div>
-			<div style={{
-				display: "flex",
-				justifyContent: "space-between",
-				width: "100vw",
-				height: "100vh"
-			}}>
-				{/* Add a separator attached with editor and Console */}
-				<div style={{
-					background: "red",
-					width: 300,
-					height: 600
-				}}>Desc</div>
-				<div style={{
-					display: "grid",
-					flexDirection: "column",
+		//Main Area
+		<div style={{
+			display: "flex",
+			justifyContent: "space-between",
+			width: "100vw",
+			height: "95.5vh",
+		}}>
+			{/* First child of MainArea => Description box = Description + verticalResizer */}
+			<div ref={refDescription}
+				style={{
+					display: "flex",
 					justifyContent: "space-between",
+					width: "50%",
+					minWidth: "384px",
 				}}>
-					<div style={{
-						background: "blue",
-						width: 300,
-						height: 300
-					}}>Editor</div>
-					<div style={{
-						background: "green",
-						width: 300,
-						height: 300
-					}}>Console</div>
+				<Description />
+				<div ref={refVertical} style={{
+					display: "flex",
+					flexDirection: "column",
+					justifyContent: "center",
+					cursor: "col-resize"
+				}}>
+					<MoreVert fontSize="large" style={{
+						marginLeft: -12,
+						marginRight: -12,
+						color: "#767676"
+					}} />
 				</div>
 			</div>
-		</div >
+			{/* Second child of MainArea ==> CodeEditor + (HorizontalResizer + Console)*/}
+			<div ref={refRightPanel}
+				style={{
+					display: "flex",
+					flexDirection: "column",
+					justifyContent: "space-between",
+					width: "50%",
+					minWidth: "384px"
+				}}>
+				{/* CodeEditor */}
+				<div ref={refCodeEditor}
+					style={{
+						height: "70%",
+						minHeight: "200px",
+						background: "blue",
+					}}>
+					<CodeEditor />
+				</div>
+				{/* Console =  HorizontalResizer + Console*/}
+				<div ref={refConsole}
+					style={{
+						display: "flex",
+						flexDirection: "column",
+						justifyContent: "space-between",
+						height: "30%",
+						minHeight: "100px",
+						background: "green"
+					}}>
+
+					<div ref={refHorizontal} style={{
+						display: "flex",
+						justifyContent: "center",
+						cursor: "row-resize"
+					}}>
+						<MoreHoriz fontSize="large" style={{
+							marginTop: -12,
+							marginBottom: -12,
+							color: "#767676"
+						}} />
+					</div>
+					<Console ref={refHorizontal} />
+				</div>
+			</div>
+		</div>
 	)
 }
 

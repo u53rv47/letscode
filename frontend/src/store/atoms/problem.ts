@@ -1,13 +1,7 @@
 import { atom } from "recoil";
 import { Descendant } from "slate";
 
-export const initialValue: Descendant[] = [{
-	type: 'paragraph',
-	children: [
-		{ text: 'Enter the problem description here...' },
-	]
-},];
-
+export const initialValue = '<p>Enter the problem description here...</p>'
 
 export const problemState = atom({
 	key: 'problemState',
