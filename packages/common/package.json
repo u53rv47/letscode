@@ -1,0 +1,17 @@
+{
+  "name": "common",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsc && node dist/index.js",
+    "lint": "eslint . --ext .ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Vijay Singh",
+  "license": "ISC",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "zod": "^3.21.4"
+  }
+}
