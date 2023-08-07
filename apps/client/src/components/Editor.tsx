@@ -1,11 +1,8 @@
-import { Grid, Box, Typography } from "@mui/material";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { problemDescription } from "../store/selectors/problem";
 import { MoreVert, MoreHoriz } from "@mui/icons-material";
 import Description from "./editor/Description";
 import CodeEditor from "./editor/CodeEditor";
 import Console from "./editor/Console";
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import useResizer from "./hooks/useResizer";
 
 function Editor(): JSX.Element {

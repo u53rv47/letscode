@@ -38,14 +38,6 @@ To build all apps and packages, run the following command:
 
 ```
 cd letscode
-pnpm build
+turbo build
 ```
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd letscode
-pnpm dev
-```

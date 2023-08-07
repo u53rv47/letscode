@@ -1,34 +1,18 @@
-import { Grid, Box, Typography, Select, MenuItem, SelectChangeEvent, Switch, FormControlLabel } from "@mui/material";
+import { Button, Select, MenuItem, SelectChangeEvent, Switch, FormControlLabel } from "@mui/material";
 import Editor from '@monaco-editor/react'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { useRecoilState } from "recoil";
+import { solutionDetails } from "../../store/selectors/solution";
+import { languages } from "../../store/atoms/solution";
 
-
-const languages = {
-	"java": {
-		language: 'java',
-		value:
-			`class Solution{
-	public static void main(String[] args){
-		System.out.println("Hello World");
-	}
-}`
-	},
-	"python": {
-		language: 'python',
-		value: 'print("Hello World")',
-	},
-	"javascript": {
-		language: 'javascript',
-		value: 'console.log("Hello World")'
-	}
-};
 
 function CodeEditor(): JSX.Element {
-	const [language, setLanguage] = useState('javascript');
+	const [solution, setSolution] = useRecoilState(solutionDetails)
 	const [theme, setTheme] = useState("Dark");
+	const editorRef = useRef(null);
 
-	const editorLanguage = languages[language];
 	const editorTheme = theme === "Dark" ? 'vs-dark' : 'light';
+
 
 	return (
 		<div style={{
@@ -46,15 +30,22 @@ function CodeEditor(): JSX.Element {
 			}}>
 				<Select
 					variant="standard"
-					value={language}
+					value={solution.language}
 					onChange={(event: SelectChangeEvent) => {
-						setLanguage(event.target.value as string);
+						const language = event.target.value as string
+						setSolution({ language, value: languages[language].value });
 					}}
 				>
 					<MenuItem value='java'>Java</MenuItem>
 					<MenuItem value='python'>Python</MenuItem>
 					<MenuItem value='javascript'>JavaScript</MenuItem>
 				</Select>
+				<Button onClick={() => {
+					const editorValue = editorRef.current.getValue();
+					setSolution({ language: solution.language, value: editorValue })
+					console.log(editorValue)
+
+				}}>Log me</Button>
 				<FormControlLabel
 					control={
 						< Switch onChange={(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
@@ -69,11 +60,14 @@ function CodeEditor(): JSX.Element {
 			</div>
 
 			<Editor
+				onMount={(editor, monaco) => {
+					editorRef.current = editor;
+				}}
 				theme={editorTheme}
-				defaultLanguage={'javascript'}
-				defaultValue={languages['javascript'].value}
-				language={editorLanguage.language}
-				value={editorLanguage.value}
+				defaultLanguage={solution.language}
+				defaultValue={solution.value}
+				language={solution.language}
+				value={solution.value}
 
 				options={{
 					minimap: { enabled: false },
