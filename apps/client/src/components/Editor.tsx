@@ -39,7 +39,7 @@ function Editor(): JSX.Element {
 				style={{
 					display: "flex",
 					justifyContent: "space-between",
-					width: "50%",
+					width: "40%",
 					minWidth: "384px",
 				}}>
 				<Description />
@@ -63,7 +63,7 @@ function Editor(): JSX.Element {
 					display: "flex",
 					flexDirection: "column",
 					justifyContent: "space-between",
-					width: "50%",
+					width: "60%",
 					minWidth: "384px",
 				}}>
 				{/* CodeEditor */}
@@ -97,7 +97,7 @@ function Editor(): JSX.Element {
 							color: "#767676"
 						}} />
 					</div>
-					<Console ref={refHorizontal} />
+					<Console />
 				</div>
 			</div>
 		</div>

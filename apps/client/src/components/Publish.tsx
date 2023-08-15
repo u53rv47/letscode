@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
-import { Grid, TextField, Button, Box } from "@mui/material";
-import { problemTitle, problemDescription, problemDetails } from "../store/selectors/problem";
+import { useRecoilValue, useRecoilState, useSetRecoilState, useResetRecoilState } from "recoil";
+import { Grid, TextField, Button, TextareaAutosize, Typography } from "@mui/material";
+import { problemTitle, problemDescription, problemInputs, problemOutputs, problemDetails } from "../store/selectors/problem";
 import axios from "axios";
-import { initialValue, problemState } from "../store/atoms/problem";
+import { initialProblem } from "../store/atoms/problem";
 import TinyMCE from "./publish/TinyMCE";
+import IOSet from "./publish/IOSet";
+
 
 function Publish(): JSX.Element {
 	const [title, setTitle] = useRecoilState(problemTitle);
-	const [description, setDescription] = useRecoilState(problemDescription);
-
+	const [problem, setProblem] = useRecoilState(problemDetails);
+	const description = useRecoilValue(problemDescription);
 
 	return (
 		<Grid container style={{
@@ -23,8 +25,7 @@ function Publish(): JSX.Element {
 					padding: 10,
 					borderRadius: 5,
 					boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2)",
-					transition: "0.3s"
-
+					transition: "0.3s",
 				}}>
 					<TextField
 						fullWidth={true}
@@ -39,10 +40,26 @@ function Publish(): JSX.Element {
 					/>
 					{/* <SlateRichText /> */}
 					<TinyMCE />
-
 					<div style={{
 						display: "flex",
-						justifyContent: "space-between"
+						flexDirection: "column",
+						justifyContent: "center",
+						margin: "0px 40px"
+					}}>
+						<IOSet type="Input" state={problemInputs} />
+						<br />
+						<IOSet type="Output" state={problemOutputs} />
+						<br />
+						<Typography marginBottom="10px">Sample Testcases</Typography>
+						<TextField multiline size="small" minRows={2}></TextField>
+						<br />
+						<Typography marginBottom="10px">Driver Code</Typography>
+						<TextField multiline size="small" minRows={10}></TextField>
+					</div>
+					<div style={{
+						display: "flex",
+						justifyContent: "space-between",
+						margin: "15px 0px 0px 40px"
 					}}>
 						<Button
 							size="small"
@@ -51,6 +68,7 @@ function Publish(): JSX.Element {
 								textTransform: "initial"
 							}}
 							onClick={async () => {
+
 								const res = await axios.post("http://localhost:3000/problem/publish", {
 									title,
 									description
@@ -68,15 +86,22 @@ function Publish(): JSX.Element {
 						<Button
 							size="small"
 							variant="contained"
+							style={{
+								textTransform: "initial"
+							}}
+							onClick={() => {
+								console.log(problem);
+							}}
+						> Log me</Button>
+						<Button
+							size="small"
+							variant="contained"
 							color="error"
 							style={{
 								textTransform: "initial"
 							}}
 							onClick={() => {
-								setTitle("");
-								setDescription(initialValue);
-								console.log(title);
-								console.log(description);
+								setProblem(initialProblem);
 							}}
 						> Reset</Button>
 					</div>

@@ -9,7 +9,6 @@ import { languages } from "../../store/atoms/solution";
 function CodeEditor(): JSX.Element {
 	const [solution, setSolution] = useRecoilState(solutionDetails)
 	const [theme, setTheme] = useState("Dark");
-	const editorRef = useRef(null);
 
 	const editorTheme = theme === "Dark" ? 'vs-dark' : 'light';
 
@@ -20,7 +19,7 @@ function CodeEditor(): JSX.Element {
 			// background: "#313131",
 			overflow: "hidden",
 			border: "2px solid rgba(0, 0, 0, 0.08)",
-			borderRadius: "10px",
+			borderRadius: "5px",
 		}}>
 			<div style={{
 				display: "flex",
@@ -41,10 +40,7 @@ function CodeEditor(): JSX.Element {
 					<MenuItem value='javascript'>JavaScript</MenuItem>
 				</Select>
 				<Button onClick={() => {
-					const editorValue = editorRef.current.getValue();
-					setSolution({ language: solution.language, value: editorValue })
-					console.log(editorValue)
-
+					console.log(solution.value)
 				}}>Log me</Button>
 				<FormControlLabel
 					control={
@@ -60,14 +56,15 @@ function CodeEditor(): JSX.Element {
 			</div>
 
 			<Editor
-				onMount={(editor, monaco) => {
-					editorRef.current = editor;
-				}}
 				theme={editorTheme}
 				defaultLanguage={solution.language}
 				defaultValue={solution.value}
 				language={solution.language}
 				value={solution.value}
+				onChange={(newValue, e) => {
+					// console.log(newValue);
+					setSolution({ language: solution.language, value: newValue })
+				}}
 
 				options={{
 					minimap: { enabled: false },
@@ -76,7 +73,7 @@ function CodeEditor(): JSX.Element {
 						vertical: "hidden",
 					},
 					wordWrap: 'on',
-					formatOnType: true
+					formatOnType: true,
 				}}
 			/>
 		</div>

@@ -41,7 +41,7 @@ function Description() {
 			}
 		});
 		if (res.data) {
-			setProblem({ title: res.data[2].title, description: res.data[2].description })
+			setProblem({ title: res.data[2].title, description: res.data[2].description, inputs: res.data[2].inputs, outputs: res.data[2].outputs })
 		}
 	}
 
@@ -52,7 +52,7 @@ function Description() {
 	const parsed = parse(problem.description, options);
 	return (
 		<div style={{
-			borderRadius: "10px",
+			borderRadius: "5px",
 			paddingLeft: "10px",
 			maxHeight: "95.5vh",
 			width: "100%",
