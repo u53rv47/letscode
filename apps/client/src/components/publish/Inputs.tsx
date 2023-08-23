@@ -3,50 +3,37 @@ import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { useState } from 'react';
 import { RecoilState, useRecoilState, useRecoilValue } from 'recoil'
-import { initialIO } from '../../store/atoms/problem';
-import { tempInputName } from '../../store/selectors/temp';
+import { initialInputs } from '../../store/atoms/problem';
+import { problemInputs } from '../../store/selectors/problem';
 
-interface IOprops {
-	type: string;
-	state: RecoilState<{
-		name: string;
-		type: string;
-		add: boolean;
-	}[]>
-}
-export default function IOSet(props: IOprops) {
-	const ios = useRecoilValue(props.state);
-	console.log(ios)
+
+export default function Inputs() {
+	const inputs = useRecoilValue(problemInputs);
 
 	return (
 		<div>
-			<Typography >{props.type}</Typography>
-			{ios.map((io, index) => (
-				<IO name={io.name} type={io.type} add={io.add}
-					index={index} state={props.state} key={Math.random()} />
+			{inputs.map((input, index) => (
+				<Input name={input.name} type={input.type} add={input.add}
+					index={index} key={Math.random()} />
 			))}
 		</div >
 	);
 }
 
-interface IOs {
+
+interface Inputs {
 	name: string;
 	type: string;
 	add: boolean;
 
 	index: number;
-	state: RecoilState<{
-		name: string;
-		type: string;
-		add: boolean;
-	}[]>
 }
 
-function IO(props: IOs) {
+function Input(props: Inputs) {
 
 	const [name, setName] = useState(props.name);
 	const [type, setType] = useState(props.type);
-	const [ios, setIOs] = useRecoilState(props.state);
+	const [inputs, setInputs] = useRecoilState(problemInputs);
 
 	return (
 		<div style={{
@@ -80,33 +67,33 @@ function IO(props: IOs) {
 			{props.add && < Button
 				onClick={() => {
 					let temp = [];
-					for (let i = 0; i < ios.length - 1; i++) {
-						const tempName = ios[i].name;
-						const tempType = ios[i].type;
+					for (let i = 0; i < inputs.length - 1; i++) {
+						const tempName = inputs[i].name;
+						const tempType = inputs[i].type;
 						temp.push({ name: tempName, type: tempType, add: false });
 					}
 
 					temp.push({ name, type, add: false });
-					temp.push(initialIO);
+					temp.push(initialInputs);
 
-					setIOs(temp);
+					setInputs(temp);
 				}} >
 				<ControlPointIcon color='action' />
 			</Button>}
 			{!props.add && < Button
 				onClick={() => {
 					let temp = [];
-					for (let i = 0; i < ios.length - 1; i++) {
+					for (let i = 0; i < inputs.length - 1; i++) {
 						if (i === props.index) {
 							continue;
 						}
-						const tempName = ios[i].name;
-						const tempType = ios[i].type;
+						const tempName = inputs[i].name;
+						const tempType = inputs[i].type;
 						temp.push({ name: tempName, type: tempType, add: false });
 					}
 
-					temp.push(initialIO);
-					setIOs(temp);
+					temp.push(initialInputs);
+					setInputs(temp);
 				}} >
 				<RemoveCircleOutlineIcon color='action' />
 			</Button>}

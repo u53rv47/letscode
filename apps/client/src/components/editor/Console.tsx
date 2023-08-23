@@ -1,18 +1,21 @@
-import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Tabs, Tab, Typography, TextField, Button } from '@mui/material';
 import { Add } from "@mui/icons-material";
-import { constSelector, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { solutionValue } from '../../store/selectors/solution';
+import { problemInputs, problemTestcase } from '../../store/selectors/problem';
 
 
 function Console(): JSX.Element {
-	const [tab, setTab] = React.useState(0);
-	const solution = useRecoilValue(solutionValue);
+	const [tab, setTab] = useState(0);
+	const [btn, setBtn] = useState(0);
+	const inputs = useRecoilValue(problemInputs);
 
 	const handleChange = (event: React.SyntheticEvent, newValue: number) => {
 		setTab(newValue);
 	};
-
+	if (inputs.length === 1)
+		return <></>
 	return (
 		<div style={{
 			height: "100%",
@@ -38,27 +41,27 @@ function Console(): JSX.Element {
 
 				<CustomTabPanel value={tab} index={0}>
 					<div style={{ marginBottom: "10px" }}>
-						<Button variant='contained' size="small" style={{
-							marginRight: "10px", background: "#eee", color: "black", textTransform: "none"
-						}} > Case 1 </Button>
-						<Button variant='contained' size="small" style={{
-							marginRight: "10px", background: "#eee", color: "black", textTransform: "none"
-						}} > Case 1 </Button>
-						<Button variant='contained' size="small" style={{
-							marginRight: "10px", background: "#eee", color: "black", textTransform: "none"
-						}} > Case 2 </Button>
+						{inputs.map((input, index) => (
+							<Button variant='contained' size="small" key={Math.random()} style={{
+								marginRight: "10px", background: "#eee", color: "black", textTransform: "none"
+							}} onClick={() => {
+								setBtn(index);
+							}}> {`Case ${index + 1}`}</Button>
+						))}
 						<Button variant='contained' size="small" style={{
 							marginRight: "10px", background: "#eee", color: "black", textTransform: "none"
 						}} ><Add fontSize='small' /> </Button>
-
 					</div>
-
-					<Typography>nums=</Typography>
-					<TextField fullWidth={true} size='small' variant="outlined" />
-					<Typography>target=</Typography>
-					<TextField fullWidth={true} size='small' variant="outlined" />
+					{inputs.map((input, i) => {
+						console.log("Index: " + i);
+						console.log(input)
+						return (
+							<Inputs name={input.name} btn={btn} index={i} key={Math.random()}></Inputs>
+						)
+					})}
 
 				</CustomTabPanel>
+
 				<CustomTabPanel value={tab} index={1} >
 					<Typography>Run the code to see output</Typography>
 				</CustomTabPanel>
@@ -72,7 +75,7 @@ function Console(): JSX.Element {
 					background: "#eee", color: "black", textTransform: "none"
 				}}
 					onClick={() => {
-						console.log(solution);
+						// console.log(solution);
 						// Make a backend request
 					}}> Run </Button>
 				<Button variant='contained' style={{
@@ -82,6 +85,36 @@ function Console(): JSX.Element {
 		</div>
 	)
 };
+
+interface InputProps {
+	key: number;
+	name: string;
+	index: number;
+	btn: number;
+}
+function Inputs(props: InputProps): JSX.Element {
+	const inputs = useRecoilValue(problemInputs);
+	const [testcase, setTestcase] = useRecoilState(problemTestcase);
+	var len = inputs.length - 1;
+	const testcases = testcase.split('\n').reduce((resultArray, item, index) => {
+		const chunkIndex = Math.floor(index / len);
+		if (!resultArray[chunkIndex])
+			resultArray[chunkIndex] = [] // start a new chunk
+		resultArray[chunkIndex].push(item)
+		return resultArray
+	}, [])
+
+	console.log(testcases)
+
+	return (
+		<div style={{
+			marginBottom: "10px",
+		}}>
+			<Typography>{props.name + "="}</Typography>
+			<TextField fullWidth={true} size='small' variant="outlined" value={testcases[props.btn][props.index]} />
+		</div>
+	)
+}
 
 interface TabPanelProps {
 	children?: React.ReactNode;
@@ -117,4 +150,5 @@ function a11yProps(index: number) {
 		'aria-controls': `simple-tabpanel-${index}`,
 	};
 }
+
 export default Console;

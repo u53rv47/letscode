@@ -22,32 +22,45 @@ const options: HTMLReactParserOptions = {
 				</Typography>
 			);
 		}
-		// if (name === 'code') {
-		// 	return <code style={{
-		// 		background: "white",
-		// 		borderRadius: "5px",
-		// 	}}> {domToReact(children, options)}</code>
-		// }
+		if (name === 'pre') {
+			return <pre style={{
+				background: "white",
+				borderRadius: "5px",
+				fontSize: "16px",
+				padding: "10px",
+				marginRight: "5px"
+			}}>{domToReact(children, options)}</pre>
+		}
+		if (name === 'code') {
+			return <code style={{
+				fontSize: "16px"
+			}}>{domToReact(children, options)}</code>
+		}
 	}
 };
 
 function Description() {
 	const [problem, setProblem] = useRecoilState(problemDetails);
 
-	const init = async () => {
-		const res = await axios.get("http://localhost:3000/problem", {
-			headers: {
-				"Authorization": "Bearer " + localStorage.getItem("token")
-			}
-		});
-		if (res.data) {
-			setProblem({ title: res.data[2].title, description: res.data[2].description, inputs: res.data[2].inputs, outputs: res.data[2].outputs })
-		}
-	}
+	// const init = async () => {
+	// 	const res = await axios.get("http://localhost:3000/problem", {
+	// 		headers: {
+	// 			"Authorization": "Bearer " + localStorage.getItem("token")
+	// 		}
+	// 	});
+	// 	if (res.data) {
+	// 		setProblem({ title: res.data[2].title, description: res.data[2].description, inputs: res.data[2].inputs, testcase: res.data[2].testcase, driverCode: res.data[2].driverCode })
+	// 	}
+	// }
 
-	// useEffect(() => {
-	// 	init();
-	// }, []);
+	useEffect(() => {
+		// init();
+		const localProblem = localStorage.getItem("problem");
+		if (localProblem) {
+			setProblem(JSON.parse(localProblem));
+		}
+	}, []);
+
 
 	const parsed = parse(problem.description, options);
 	return (
@@ -60,7 +73,9 @@ function Description() {
 			// background: "#fffcf1"
 			background: "#eee"
 		}}>
-			<Typography variant="h4">{problem.title}</Typography>
+			<Typography variant="h4" style={{
+				marginTop: "10px"
+			}}>{problem.title}</Typography>
 			<br />
 			{parsed}
 		</div>

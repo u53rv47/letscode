@@ -3,15 +3,15 @@ import Editor from '@monaco-editor/react'
 import { useState, useRef } from 'react'
 import { useRecoilState } from "recoil";
 import { solutionDetails } from "../../store/selectors/solution";
-import { languages } from "../../store/atoms/solution";
+import { languages } from "../../store/atoms/problem";
 
 
 function CodeEditor(): JSX.Element {
-	const [solution, setSolution] = useRecoilState(solutionDetails)
-	const [theme, setTheme] = useState("Dark");
+	const [theme, setTheme] = useState('Dark');
+	const [solution, setSolution] = useRecoilState(solutionDetails);
 
-	const editorTheme = theme === "Dark" ? 'vs-dark' : 'light';
 
+	const editorTheme = theme === 'Dark' ? 'vs-dark' : 'light';
 
 	return (
 		<div style={{
