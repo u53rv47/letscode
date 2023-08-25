@@ -1,9 +1,8 @@
-import { problemDescription, problemDetails } from "../../store/selectors/problem";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilValue } from "recoil";
 import parse, { Element, HTMLReactParserOptions, domToReact } from 'html-react-parser';
-import { useEffect } from "react";
-import axios from "axios";
 import { Typography } from "@mui/material";
+import { problemDescription, problemDetails, problemTitle } from "../../store/selectors/problem";
+
 
 const options: HTMLReactParserOptions = {
 	replace: ({ name, attribs, children }: Element) => {
@@ -40,29 +39,10 @@ const options: HTMLReactParserOptions = {
 };
 
 function Description() {
-	const [problem, setProblem] = useRecoilState(problemDetails);
+	const title = useRecoilValue(problemTitle);
+	const description = useRecoilValue(problemDescription);
 
-	// const init = async () => {
-	// 	const res = await axios.get("http://localhost:3000/problem", {
-	// 		headers: {
-	// 			"Authorization": "Bearer " + localStorage.getItem("token")
-	// 		}
-	// 	});
-	// 	if (res.data) {
-	// 		setProblem({ title: res.data[2].title, description: res.data[2].description, inputs: res.data[2].inputs, testcase: res.data[2].testcase, driverCode: res.data[2].driverCode })
-	// 	}
-	// }
-
-	useEffect(() => {
-		// init();
-		const localProblem = localStorage.getItem("problem");
-		if (localProblem) {
-			setProblem(JSON.parse(localProblem));
-		}
-	}, []);
-
-
-	const parsed = parse(problem.description, options);
+	const parsed = parse(description, options);
 	return (
 		<div style={{
 			borderRadius: "5px",
@@ -75,7 +55,7 @@ function Description() {
 		}}>
 			<Typography variant="h4" style={{
 				marginTop: "10px"
-			}}>{problem.title}</Typography>
+			}}>{title}</Typography>
 			<br />
 			{parsed}
 		</div>

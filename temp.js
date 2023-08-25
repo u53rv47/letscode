@@ -1,8 +1,4 @@
-s = `[2,7,11,15]
-9
-[3,2,4]
-6
-[3,3]
-6`
 
-console.log(10 / 2)
+title = "1. Two Sum"
+slug = title.split(".")[1].trim().split(" ").join("-").toLowerCase()
+console.log(title.split(".")[1].trim())

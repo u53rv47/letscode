@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
 import { Box, Grid, TextField, Button, Typography, Tabs, Tab } from "@mui/material";
 import { problemDescription, problemInputs, problemTitle, problemTestcase, problemDriverCode, problemDetails } from "../store/selectors/problem";
@@ -10,10 +10,14 @@ import Inputs from "./publish/Inputs";
 
 function Publish(): JSX.Element {
 	const setProblem = useSetRecoilState(problemDetails);
-
-	const problem = localStorage.getItem("problem");
-	if (problem)
-		setProblem(JSON.parse(problem));
+	function init() {
+		const problem = localStorage.getItem("problem");
+		if (problem)
+			setProblem(JSON.parse(problem));
+	}
+	useEffect(() => {
+		init();
+	}, [])
 
 	return (
 		<Grid container style={{
@@ -200,20 +204,28 @@ function SubmitPanel(): JSX.Element {
 				style={{
 					textTransform: "initial"
 				}}
-			// onClick={async () => {
-
-			// 	const res = await axios.post("http://localhost:3000/problem/publish", {
-			// 		problem
-			// 	}, {
-			// 		headers: {
-			// 			"Authorization": "Bearer " + localStorage.getItem("token")
-			// 		}
-			// 	});
-			// 	if (res) {
-			// 		console.log(title);
-			// 		console.log(description);
-			// 	}
-			// }}
+				onClick={async () => {
+					const n = problem.inputs.length;
+					const inputs = problem.inputs.reduce((inputs, curr, index) => {
+						if (index != n - 1) {
+							const input = { name: curr.name, type: curr.type }
+							inputs.push(input)
+						}
+						return inputs;
+					}, [])
+					console.log(inputs)
+					const res = await axios.post("http://localhost:3000/problem/publish", {
+						title: problem.title, description: problem.description, inputs, testcase: problem.testcase, driverCode: problem.driverCode
+					}, {
+						headers: {
+							"Authorization": "Bearer " + localStorage.getItem("token")
+						}
+					});
+					if (res) {
+						console.log(res.data.id);
+						console.log(res.data.message);
+					}
+				}}
 			>Publish</Button>
 			<Button
 				size="small"
@@ -237,7 +249,7 @@ function SubmitPanel(): JSX.Element {
 					setProblem(initialProblem);
 				}}
 			>Reset</Button>
-		</div>
+		</div >
 	)
 }
 export default Publish;

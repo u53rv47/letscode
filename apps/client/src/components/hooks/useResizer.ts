@@ -1,14 +1,14 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 
 export default function useResizer(
-	refDescription,
-	refRightPanel,
-	refCodeEditor,
-	refConsole,
+	refDescription: React.MutableRefObject<any>,
+	refRightPanel: React.MutableRefObject<any>,
+	refCodeEditor: React.MutableRefObject<any>,
+	refConsole: React.MutableRefObject<any>,
 
-	refVertical,
-	refHorizontal) {
+	refVertical: React.MutableRefObject<any>,
+	refHorizontal: React.MutableRefObject<any>) {
 	useEffect(() => {
 		const lResizableElement = refDescription.current;
 		const rResizableElement = refRightPanel.current;
@@ -21,7 +21,7 @@ export default function useResizer(
 
 		let xCord = 0;
 
-		const onMouseMoveVerticalResize = (event) => {
+		const onMouseMoveVerticalResize = (event: MouseEvent) => {
 			const dx = event.clientX - xCord;
 			lWidth = lWidth + dx;
 			rWidth = rWidth - dx;
@@ -30,11 +30,11 @@ export default function useResizer(
 			rResizableElement.style.width = `${rWidth}px`;
 		}
 
-		const onMouseUpVerticalResize = (event) => {
+		const onMouseUpVerticalResize = (event: MouseEvent) => {
 			document.removeEventListener("mousemove", onMouseMoveVerticalResize);
 		}
 
-		const onMouseDownVerticalResize = (event) => {
+		const onMouseDownVerticalResize = (event: MouseEvent) => {
 			xCord = event.clientX;
 
 			lResizableElement.style.left = lStyles.left;
@@ -63,7 +63,7 @@ export default function useResizer(
 
 		let yCord = 0;
 
-		const onMouseMoveHorizontalResize = (event) => {
+		const onMouseMoveHorizontalResize = (event: MouseEvent) => {
 			const dy = event.clientY - yCord;
 			// uHeight = uHeight + dy;
 			// uHeight = uHeight + dy;
@@ -74,11 +74,11 @@ export default function useResizer(
 			dResizableElement.style.height = `${dHeight}px`;
 		}
 
-		const onMouseUpHorizontalResize = (event) => {
+		const onMouseUpHorizontalResize = (event: MouseEvent) => {
 			document.removeEventListener("mousemove", onMouseMoveHorizontalResize);
 		}
 
-		const onMouseDownHorizontalResize = (event) => {
+		const onMouseDownHorizontalResize = (event: MouseEvent) => {
 			yCord = event.clientY;
 
 			uResizableElement.style.top = uStyles.top;

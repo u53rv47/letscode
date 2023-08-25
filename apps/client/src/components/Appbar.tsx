@@ -1,6 +1,6 @@
 import { Typography, Link, Grid } from "@mui/material";
 import { Navigate, useNavigate } from "react-router-dom";
-
+import logo from "../assets/logo.png"
 
 function Appbar(): JSX.Element {
 	const navigate = useNavigate();
@@ -17,7 +17,7 @@ function Appbar(): JSX.Element {
 					<div onClick={() => {
 						navigate("/");
 					}}>
-						<Typography variant={"h6"} paddingLeft={2} >Let's code</Typography>
+						<img src={logo} alt="Let's code" />
 					</div>
 					<div>
 						<Typography paddingRight={2} >

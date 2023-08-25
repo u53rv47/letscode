@@ -3,7 +3,7 @@ import { atom } from "recoil";
 export const initialDesc = '<p>Enter the problem description here...</p>'
 export const initialInputs = { name: "", type: "", add: true }
 export const languages = {
-	"java": {
+	java: {
 		language: 'java',
 		value:
 			`class Solution{
@@ -12,11 +12,11 @@ export const languages = {
 	}
 }`
 	},
-	"python": {
+	python: {
 		language: 'python',
 		value: 'print("Hello World")',
 	},
-	"javascript": {
+	javascript: {
 		language: 'javascript',
 		value: 'console.log("Hello World")'
 	}

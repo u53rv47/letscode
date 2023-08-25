@@ -11,8 +11,8 @@ import Editor from "./components/Editor";
 function App() {
   return (
     <div style={{
-      width: "100vw",
-      height: "100vh",
+      width: "99vw",
+      height: "97.5vh",
       background: "#eee",
     }}>
 
@@ -25,7 +25,7 @@ function App() {
             <Route path={"/signin"} element={<Signin />} />
             {/* Clear description from localStorage while logging out */}
             <Route path={"/publish"} element={<Publish />} />
-            <Route path={"/editor"} element={<Editor />} />
+            <Route path={"/problems/:slug"} element={<Editor />} />
           </Routes>
         </Router>
       </RecoilRoot>

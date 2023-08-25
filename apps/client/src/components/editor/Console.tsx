@@ -1,21 +1,30 @@
 import { useEffect, useState } from 'react';
-import { Box, Tabs, Tab, Typography, TextField, Button } from '@mui/material';
+import { Box, Tabs, Tab, Typography, TextField, Button, dividerClasses } from '@mui/material';
 import { Add } from "@mui/icons-material";
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { solutionValue } from '../../store/selectors/solution';
 import { problemInputs, problemTestcase } from '../../store/selectors/problem';
+import { tempTestcaseState } from '../../store/atoms/solution';
 
-
+{/* <CaseButtons len={len} setBtn={setBtn} /> */ }
 function Console(): JSX.Element {
 	const [tab, setTab] = useState(0);
 	const [btn, setBtn] = useState(0);
+	const testcase = useRecoilValue(problemTestcase);
 	const inputs = useRecoilValue(problemInputs);
+	const [solutionTest, setSolutionTest] = useRecoilState(tempTestcaseState);
 
-	const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-		setTab(newValue);
-	};
-	if (inputs.length === 1)
-		return <></>
+	const len = inputs.length;
+	const testcases = solutionTest.split('\n').reduce((resultArray, item, index) => {
+		const chunkIndex = Math.floor(index / len);
+		if (!resultArray[chunkIndex])
+			resultArray[chunkIndex] = [] // start a new chunk
+		resultArray[chunkIndex].push(item)
+		return resultArray
+	}, [])
+	useEffect(() => {
+		setSolutionTest(testcase);
+	}, []);
+
 	return (
 		<div style={{
 			height: "100%",
@@ -28,7 +37,9 @@ function Console(): JSX.Element {
 		}}>
 			<div>
 				<Tabs value={tab}
-					onChange={handleChange}
+					onChange={(e, value) => {
+						setTab(value);
+					}}
 					aria-label="basic tabs example"
 				>
 					<Tab sx={{ textTransform: "none" }} label="Testcase" {...a11yProps(0)} />
@@ -40,32 +51,62 @@ function Console(): JSX.Element {
 			}}>
 
 				<CustomTabPanel value={tab} index={0}>
+					{/* Button Panel */}
 					<div style={{ marginBottom: "10px" }}>
-						{inputs.map((input, index) => (
-							<Button variant='contained' size="small" key={Math.random()} style={{
-								marginRight: "10px", background: "#eee", color: "black", textTransform: "none"
+						{testcases.map((tc, index) => {
+							return <Button key={"case" + index} variant='contained' size="small" style={{
+								marginRight: "10px", marginBottom: "5px", background: "#eee", color: "black", textTransform: "none"
 							}} onClick={() => {
 								setBtn(index);
-							}}> {`Case ${index + 1}`}</Button>
-						))}
+							}}> Case {index + 1}</Button>
+						})}
 						<Button variant='contained' size="small" style={{
 							marginRight: "10px", background: "#eee", color: "black", textTransform: "none"
-						}} ><Add fontSize='small' /> </Button>
+						}} onClick={() => {
+							if (testcases.length < 10) {
+								const newTestcases = testcases.concat(testcases.slice(testcases.length - 1, testcases.length));
+								var newTestcase = "";
+								for (var i = 0; i < newTestcases.length; i++)
+									for (var j = 0; j < len; j++) {
+										newTestcase += newTestcases[i][j]
+										if (i != newTestcases.length - 1 || j != len - 1)
+											newTestcase += "\n";
+									}
+								setSolutionTest(newTestcase);
+								setBtn(newTestcases.length - 1);
+							}
+						}}><Add fontSize='small' /></Button>
 					</div>
-					{inputs.map((input, i) => {
-						console.log("Index: " + i);
-						console.log(input)
-						return (
-							<Inputs name={input.name} btn={btn} index={i} key={Math.random()}></Inputs>
-						)
+					{/* Inputs for each button */}
+					{inputs.map((input, idx) => {
+						return <div key={"case " + btn + "input" + idx} style={{
+							marginBottom: "10px",
+						}}>
+							<Typography>{input.name + "="}</Typography>
+							<TextField fullWidth size='small' variant="outlined" value={testcases[btn][idx]} onChange={(e) => {
+								const val = parseInt(e.target.value)
+								var newTestcase = '';
+								for (var i = 0; i < testcases.length; i++) {
+									for (var j = 0; j < len; j++) {
+										if (i == btn && j == idx)
+											newTestcase += e.target.value
+										else
+											newTestcase += testcases[i][j];
+										if (i != testcases.length - 1 || j != len - 1)
+											newTestcase += '\n'
+									}
+								}
+								setSolutionTest(newTestcase);
+							}} />
+						</div>
 					})}
-
 				</CustomTabPanel>
 
 				<CustomTabPanel value={tab} index={1} >
 					<Typography>Run the code to see output</Typography>
 				</CustomTabPanel>
 			</div>
+			{/* <ButtonPanel/> */}
 			<div style={{
 				display: "flex",
 				justifyContent: "right",
@@ -86,35 +127,6 @@ function Console(): JSX.Element {
 	)
 };
 
-interface InputProps {
-	key: number;
-	name: string;
-	index: number;
-	btn: number;
-}
-function Inputs(props: InputProps): JSX.Element {
-	const inputs = useRecoilValue(problemInputs);
-	const [testcase, setTestcase] = useRecoilState(problemTestcase);
-	var len = inputs.length - 1;
-	const testcases = testcase.split('\n').reduce((resultArray, item, index) => {
-		const chunkIndex = Math.floor(index / len);
-		if (!resultArray[chunkIndex])
-			resultArray[chunkIndex] = [] // start a new chunk
-		resultArray[chunkIndex].push(item)
-		return resultArray
-	}, [])
-
-	console.log(testcases)
-
-	return (
-		<div style={{
-			marginBottom: "10px",
-		}}>
-			<Typography>{props.name + "="}</Typography>
-			<TextField fullWidth={true} size='small' variant="outlined" value={testcases[props.btn][props.index]} />
-		</div>
-	)
-}
 
 interface TabPanelProps {
 	children?: React.ReactNode;

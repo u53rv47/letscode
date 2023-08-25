@@ -1,11 +1,35 @@
+import axios from 'axios';
+import { useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { MoreVert, MoreHoriz } from "@mui/icons-material";
+import useResizer from "./hooks/useResizer";
 import Description from "./editor/Description";
 import CodeEditor from "./editor/CodeEditor";
 import Console from "./editor/Console";
-import { useRef } from 'react';
-import useResizer from "./hooks/useResizer";
+import { initialProblem, problemState } from "../store/atoms/problem";
+import { isProblemLoading } from '../store/selectors/problem';
 
 function Editor(): JSX.Element {
+	const setProblem = useSetRecoilState(problemState);
+	const problemLoading = useRecoilValue(isProblemLoading);
+	const { slug } = useParams();
+
+	useEffect(() => {
+		axios.get(`http://localhost:3000/problem/${slug}`, {
+			headers: {
+				"Authorization": "Bearer " + localStorage.getItem("token")
+			}
+		}).then(res => {
+			const problem = { title: res.data.title, description: res.data.description, inputs: res.data.inputs, testcase: res.data.testcase, driverCode: res.data.driverCode }
+			setProblem({ isLoading: false, problem });
+			console.log("Response(Editor)")
+			console.log(res.data)
+		})
+			.catch(e => {
+				setProblem({ isLoading: false, problem: initialProblem });
+			});
+	}, []);
 
 	const refDescription = useRef(null);
 	const refRightPanel = useRef(null);
@@ -42,7 +66,7 @@ function Editor(): JSX.Element {
 					width: "40%",
 					minWidth: "384px",
 				}}>
-				<Description />
+				{!problemLoading && <Description />}
 				<div ref={refVertical} style={{
 					display: "flex",
 					flexDirection: "column",
@@ -64,7 +88,7 @@ function Editor(): JSX.Element {
 					flexDirection: "column",
 					justifyContent: "space-between",
 					width: "60%",
-					minWidth: "384px",
+					minWidth: "500px",
 				}}>
 				{/* CodeEditor */}
 				<div ref={refCodeEditor}
@@ -72,7 +96,7 @@ function Editor(): JSX.Element {
 						height: "70%",
 						minHeight: "200px",
 					}}>
-					<CodeEditor />
+					{!problemLoading && <CodeEditor />}
 				</div>
 				{/* Console =  HorizontalResizer + Console*/}
 				<div ref={refConsole}
@@ -97,7 +121,7 @@ function Editor(): JSX.Element {
 							color: "#767676"
 						}} />
 					</div>
-					<Console />
+					{!problemLoading && <Console />}
 				</div>
 			</div>
 		</div>

@@ -1,18 +1,20 @@
 import { Button, Select, MenuItem, SelectChangeEvent, Switch, FormControlLabel } from "@mui/material";
 import Editor from '@monaco-editor/react'
-import { useState, useRef } from 'react'
-import { useRecoilState } from "recoil";
-import { solutionDetails } from "../../store/selectors/solution";
-import { languages } from "../../store/atoms/problem";
+import { useState, useEffect } from 'react'
+import { useRecoilState, useRecoilValue } from "recoil";
+import { tempSolutionState } from "../../store/atoms/solution";
+import { problemDriverCode } from "../../store/selectors/problem";
 
 
 function CodeEditor(): JSX.Element {
 	const [theme, setTheme] = useState('Dark');
-	const [solution, setSolution] = useRecoilState(solutionDetails);
-
+	const driverCode = useRecoilValue(problemDriverCode);
+	const [solution, setSolution] = useRecoilState(tempSolutionState);
 
 	const editorTheme = theme === 'Dark' ? 'vs-dark' : 'light';
-
+	useEffect(() => {
+		setSolution({ language: 'java', value: driverCode['java'].value });
+	}, [])
 	return (
 		<div style={{
 			height: "99%",
@@ -32,7 +34,7 @@ function CodeEditor(): JSX.Element {
 					value={solution.language}
 					onChange={(event: SelectChangeEvent) => {
 						const language = event.target.value as string
-						setSolution({ language, value: languages[language].value });
+						setSolution({ language, value: driverCode[language].value });
 					}}
 				>
 					<MenuItem value='java'>Java</MenuItem>
@@ -62,10 +64,8 @@ function CodeEditor(): JSX.Element {
 				language={solution.language}
 				value={solution.value}
 				onChange={(newValue, e) => {
-					// console.log(newValue);
 					setSolution({ language: solution.language, value: newValue })
 				}}
-
 				options={{
 					minimap: { enabled: false },
 					scrollbar: {

@@ -1,5 +1,5 @@
 import { selector } from "recoil";
-import { solutionState } from "../atoms/solution";
+import { solutionState, tempSolutionState, tempTestcaseState } from "../atoms/solution";
 import { languages } from "../atoms/problem";
 
 export const solutionDetails = selector({
@@ -28,9 +28,7 @@ export const solutionlanguage = selector({
 	key: "solutionLanguage",
 	get: ({ get }) => {
 		const state = get(solutionState);
-		if (state.solution)
-			return state.solution.language;
-		return "javascript";
+		return state.solution.language;
 	},
 	set: ({ set, get }, newValue) => {
 		const state = get(solutionState);
@@ -44,13 +42,39 @@ export const solutionValue = selector({
 	key: "solutionValue",
 	get: ({ get }) => {
 		const state = get(solutionState);
-		if (state.solution)
-			return state.solution.value;
-		return languages.javascript.value;
+		return state.solution.value;
 	},
 	set: ({ set, get }, newValue) => {
 		const state = get(solutionState);
 		const newState = { isLoading: state.isLoading, solution: { language: state.solution.language, value: newValue } }
 		set(solutionState, newState);
+	}
+});
+
+
+export const solutionTestcase = selector({
+	key: "solutionTestcase",
+	get: ({ get }) => {
+		const state = get(solutionState);
+		return state.solution.testcase;
+	},
+	set: ({ set, get }, newValue) => {
+		const state = get(solutionState);
+		const newState = { isLoading: state.isLoading, solution: { language: state.solution.language, value: state.solution.value, testcase: newValue } }
+		set(solutionState, newState);
+	}
+});
+
+export const tempSolution = selector({
+	key: "tempSolution",
+	get: ({ get }) => {
+		return get(tempSolutionState);
+	}
+});
+
+export const tempTestcase = selector({
+	key: "tempTestcase",
+	get: ({ get }) => {
+		return get(tempTestcaseState);
 	}
 });
