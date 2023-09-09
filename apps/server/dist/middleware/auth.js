@@ -26,8 +26,10 @@ function authenticateJwt(req, res, next) {
     if (authHeader) {
         const token = authHeader.split(' ')[1];
         jsonwebtoken_1.default.verify(token, SECRET, (err, user) => {
-            if (err)
-                res.status(403).send({ message: "Invalid token" });
+            if (err) {
+                res.status(403).send({ message: "Invalid token / Expired" });
+                return;
+            }
             req.user = user;
             next();
         });

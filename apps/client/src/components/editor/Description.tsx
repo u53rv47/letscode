@@ -2,6 +2,7 @@ import { useRecoilValue } from "recoil";
 import parse, { Element, HTMLReactParserOptions, domToReact } from 'html-react-parser';
 import { Typography } from "@mui/material";
 import { problemDescription, problemDetails, problemTitle } from "../../store/selectors/problem";
+import { solutionDescription, solutionTitle } from "../../store/selectors/solution";
 
 
 const options: HTMLReactParserOptions = {
@@ -27,7 +28,8 @@ const options: HTMLReactParserOptions = {
 				borderRadius: "5px",
 				fontSize: "16px",
 				padding: "10px",
-				marginRight: "5px"
+				marginRight: "5px",
+				whiteSpace: "pre-wrap",
 			}}>{domToReact(children, options)}</pre>
 		}
 		if (name === 'code') {
@@ -39,18 +41,17 @@ const options: HTMLReactParserOptions = {
 };
 
 function Description() {
-	const title = useRecoilValue(problemTitle);
-	const description = useRecoilValue(problemDescription);
+	const title = useRecoilValue(solutionTitle);
+	const description = useRecoilValue(solutionDescription);
 
 	const parsed = parse(description, options);
 	return (
 		<div style={{
 			borderRadius: "5px",
 			paddingLeft: "10px",
-			maxHeight: "95.5vh",
 			width: "100%",
+			height: "100%",
 			overflow: "auto",
-			// background: "#fffcf1"
 			background: "#eee"
 		}}>
 			<Typography variant="h4" style={{

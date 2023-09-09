@@ -23,8 +23,10 @@ function authenticateJwt(req, res, next) {
 	if (authHeader) {
 		const token: string = authHeader.split(' ')[1]
 		jwt.verify(token, SECRET, (err, user) => {
-			if (err)
-				res.status(403).send({ message: "Invalid token" });
+			if (err) {
+				res.status(403).send({ message: "Invalid token / Expired" });
+				return;
+			}
 			req.user = user;
 			next();
 		});

@@ -1,16 +1,20 @@
-import mongoose from 'mongoose';
 require('dotenv').config();
 import express from 'express';
+import mongoose from 'mongoose';
 import cors from 'cors';
+import Docker from 'dockerode';
 import userRouter from "./routes/user";
 import problemRouter from "./routes/problem";
+import solutionRouter from "./routes/solution";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+// app.use('/uploads', express.static('uploads'));
 
 app.use("/user", userRouter);
 app.use("/problem", problemRouter);
+app.use("/solution", solutionRouter);
 
 mongoose.connect(process.env.MONGODB_URL + 'letscode');
 

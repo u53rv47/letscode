@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signupInput = void 0;
+exports.userInput = exports.signinInput = exports.signupInput = void 0;
 const zod_1 = require("zod");
 // const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
 // 	if (issue.code === z.ZodIssueCode.too_small) {
@@ -19,12 +19,18 @@ const zod_1 = require("zod");
 // 	return { message: ctx.defaultError };
 // };
 exports.signupInput = zod_1.z.object({
+    name: zod_1.z.string({
+        required_error: "Username is required",
+        invalid_type_error: 'Username must be of type "String"',
+    }),
     username: zod_1.z.string({
         required_error: "Username is required",
         invalid_type_error: 'Username must be of type "String"',
-    }).min(6).max(12),
+    }).min(6),
     password: zod_1.z.string({
         required_error: "Password is required",
         invalid_type_error: 'Password must be of type "String"',
     }).min(6)
 });
+exports.signinInput = exports.signupInput.pick({ username: true, password: true });
+exports.userInput = exports.signupInput.pick({ name: true, username: true });

@@ -1,22 +1,27 @@
 import { atom } from "recoil";
 import { languages } from "./problem";
+import { initialIO } from "./temp";
 
+export const initialSolution = {
+	title: "", description: "", testcase: "", inputs: [initialIO,],
+	result: { java: "", python: "", javascript: "" }
+}
 
 export const solutionState = atom({
 	key: 'solutionState',
 	default: {
 		isLoading: true,
-		solution: { language: "java", value: languages.java.value, testcase: "" }
+		solution: initialSolution
 	},
 });
 
 
-export const tempSolutionState = atom({
-	key: "tempSolutionState",
-	default: { language: "java", value: languages.java.value }
+export const resultState = atom({
+	key: "resultState",
+	default: { language: "java", result: languages.java.result }
 })
 
-export const tempTestcaseState = atom({
-	key: "tempTestcaseState",
+export const testcaseState = atom({
+	key: "testcaseState",
 	default: ""
 })

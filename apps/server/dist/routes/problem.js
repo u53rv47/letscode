@@ -12,13 +12,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const multer_1 = __importDefault(require("multer"));
 const express_1 = __importDefault(require("express"));
 const auth_1 = __importDefault(require("../middleware/auth"));
 const db_1 = require("../db");
+function slugify(title) {
+    const cleanedTitle = title.replace(/^[0-9.]+/, '').trim();
+    return cleanedTitle.split(' ').join('-').toLowerCase();
+}
+const storage = multer_1.default.diskStorage({
+    destination: function (req, file, cb) {
+        const slug = slugify(req.body.title);
+        const uploadDirectory = path_1.default.join("uploads", slug);
+        if (!fs_1.default.existsSync(uploadDirectory)) {
+            fs_1.default.mkdirSync(uploadDirectory, { recursive: true });
+        }
+        cb(null, uploadDirectory);
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname);
+    },
+});
+const fileUpload = (0, multer_1.default)({ storage });
 const router = express_1.default.Router();
 router.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        let problems = yield db_1.Problem.find({}).select("_id, title");
+        let problems = yield db_1.Problem.find({}).select(["_id", "title", "userId"]);
         res.status(200).json(problems);
     }
     catch (err) {
@@ -35,19 +56,41 @@ router.get("/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(404).send({ message: "Not found", error: err });
     }
 }));
-router.post("/publish", auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { title, description, inputs, testcase, driverCode } = req.body;
+router.post("/publish", auth_1.default, fileUpload.array("files", 2), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { title, difficulty, description, inputs, testcase, driverCode } = req.body;
+    const slug = slugify(title);
     if (title && description) {
         let problem = yield db_1.Problem.findOne({ title });
         if (problem)
             res.status(403).json({ message: 'Problem already exists' });
         else {
-            problem = new db_1.Problem({ title, description, inputs, testcase, driverCode, userId: req.user.userId });
-            yield problem.save();
-            res.send({ id: problem.id, message: "Problem published successfully" });
+            if (req.files.length !== 0) {
+                const [testFilePath, outputFilePath] = (req.files[0].originalname.toLowerCase() === "testcase.txt") ? [path_1.default.join('uploads', slug, req.files[0].filename.toLowerCase()), path_1.default.join('uploads', slug, req.files[1].filename.toLowerCase())] : [path_1.default.join('uploads', slug, req.files[1].filename.toLowerCase()), path_1.default.join('uploads', slug, req.files[0].filename.toLowerCase())];
+                problem = new db_1.Problem({ title, difficulty, description, inputs: JSON.parse(inputs), testcase, driverCode: JSON.parse(driverCode), slug, testFilePath, outputFilePath, userId: req.user.userId });
+                yield problem.save();
+                res.send({ id: problem.id, message: "Problem published successfully" });
+            }
+            else
+                res.status(400).json({ message: 'File could not be uploaded' });
         }
     }
     else
         res.status(400).send({ message: "Invalid request" });
+}));
+router.patch('/:slug', auth_1.default, fileUpload.array("files", 2), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const slug = req.params.slug;
+    try {
+        const updatedProblem = req.body;
+        updatedProblem.inputs = JSON.parse(updatedProblem.inputs);
+        updatedProblem.driverCode = JSON.parse(updatedProblem.driverCode);
+        if (req.files.length !== 0)
+            [updatedProblem.testFilePath, updatedProblem.outputFilePath] = (req.files[0].originalname.toLowerCase() === "testcase.txt") ? [path_1.default.join('uploads', req.files[0].filename.toLowerCase()), path_1.default.join('uploads', req.files[1].filename.toLowerCase())] : [path_1.default.join('uploads', req.files[1].filename.toLowerCase()), path_1.default.join('uploads', req.files[0].filename.toLowerCase())];
+        yield db_1.Problem.updateOne({ slug }, updatedProblem);
+        res.send({ message: "Problem updated successfully" });
+    }
+    catch (err) {
+        console.log(err);
+        res.status(404).send({ message: "Not found", error: err });
+    }
 }));
 exports.default = router;

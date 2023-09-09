@@ -2,29 +2,46 @@ import axios from "axios";
 import { useEffect } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { Grid, TextField, Button, Typography, Select, MenuItem, FormControl, InputLabel, Input } from "@mui/material";
-import { problemTitle, problemTestcase, problemDetails, problemDifficulty, problemInputs } from "../store/selectors/problem";
-import { fileState, initialProblem } from "../store/atoms/problem";
+import { problemTitle, problemTestcase, problemDetails, problemDifficulty } from "../store/selectors/problem";
+import { fileState, initialProblem, problemState, initialInputs } from "../store/atoms/problem";
 import TinyMCE from "./publish/TinyMCE";
 import Inputs from "./publish/Inputs";
 import DriverCode from "./publish/DriverCode";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 
-function Publish(): JSX.Element {
-	const setProblem = useSetRecoilState(problemDetails);
+function Edit(): JSX.Element {
+	const { slug } = useParams();
+	const setProblem = useSetRecoilState(problemState);
 
 	useEffect(() => {
-		const problem = localStorage.getItem("problem")
-		if (problem)
-			setProblem(JSON.parse(problem));
-		else setProblem(initialProblem)
+		axios.get(`http://localhost:3000/problem/${slug}`, {
+			headers: {
+				"Authorization": "Bearer " + localStorage.getItem("token")
+			}
+		}).then(res => {
+			const inputs = res.data.inputs.reduce((inputs, curr, index) => {
+				const input = { name: curr.name, type: curr.type, add: false }
+				inputs.push(input)
+				return inputs;
+			}, [])
+			inputs.push(initialInputs)
+
+			const problem = { title: res.data.title, difficulty: res.data.difficulty, description: res.data.description, inputs, testcase: res.data.testcase, driverCode: res.data.driverCode }
+			setProblem({ isLoading: false, problem });
+			console.log("Response(Edit)")
+			console.log(res.data)
+		})
+			.catch(e => {
+				setProblem({ isLoading: false, problem: initialProblem });
+			});
 	}, [])
 
 	return (
 		<Grid container style={{
-			background: "#eee",
 			marginTop: 50,
-			paddingBottom: 20
+			paddingBottom: 20,
+			background: "#eee",
 		}}>
 			<Grid item lg={3} md={1} sm={0} xs={0} />
 			<Grid item lg={6} md={10} sm={12} xs={12}>
@@ -152,20 +169,21 @@ function FileUpload(): JSX.Element {
 }
 
 function SubmitPanel(): JSX.Element {
+	const { slug } = useParams();
 	const navigate = useNavigate();
 	const [problem, setProblem] = useRecoilState(problemDetails);
 	const [files, setFiles] = useRecoilState(fileState);
-	const setInputs = useSetRecoilState(problemInputs);
 	return (
 		<div style={{
 			display: "flex",
 			justifyContent: "space-between",
 			margin: "15px 0px 0px 40px"
-		}}><div style={{
-			width: "150px",
-			display: "flex",
-			justifyContent: "space-between"
 		}}>
+			<div style={{
+				width: "150px",
+				display: "flex",
+				justifyContent: "space-between"
+			}}>
 				<Button
 					size="small"
 					variant="contained"
@@ -173,6 +191,7 @@ function SubmitPanel(): JSX.Element {
 						textTransform: "initial"
 					}}
 					onClick={() => {
+						console.log(problem)
 						// refine the inputs
 						const n = problem.inputs.length;
 						const inputs = problem.inputs.reduce((inputs, curr, index) => {
@@ -182,6 +201,7 @@ function SubmitPanel(): JSX.Element {
 							}
 							return inputs;
 						}, [])
+
 						// Create FormData object
 						const formData = new FormData();
 						formData.append('title', problem.title);
@@ -191,26 +211,28 @@ function SubmitPanel(): JSX.Element {
 						formData.append('testcase', problem.testcase);
 						formData.append('driverCode', JSON.stringify(problem.driverCode));
 
-						formData.append('files', files[0]);
-						formData.append('files', files[1]);
+						if (files.length !== 0) {
+							formData.append('files', files[0]);
+							formData.append('files', files[1]);
+						}
 
-						axios.post("http://localhost:3000/problem/publish", formData, {
+						axios.patch(`http://localhost:3000/problem/${slug}`, formData, {
 							headers: {
 								"Authorization": "Bearer " + localStorage.getItem("token"),
 								'Content-Type': 'multipart/form-data',
 							},
 						})
 							.then(res => {
-								console.log(res.data.id);
+								console.log(res)
 								console.log(res.data.message);
 								navigate("/");
 							})
 							.catch(error => {
 								// Handle error
-								console.error('Error publishing problem:', error);
+								console.error('Error updating problem:', error);
 							});
 					}}
-				>Publish</Button>
+				>Update</Button>
 				<Button
 					size="small"
 					variant="contained"
@@ -252,8 +274,8 @@ function SubmitPanel(): JSX.Element {
 					}}
 				>Cancel</Button>
 			</div >
-		</div >
+		</div>
 	)
 }
 
-export default Publish;
+export default Edit;

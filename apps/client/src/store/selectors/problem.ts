@@ -31,11 +31,23 @@ export const problemTitle = selector({
 	},
 	set: ({ set, get }, newValue) => {
 		const state = get(problemState);
-		const newState = { isLoading: state.isLoading, problem: { title: newValue, description: state.problem.description, inputs: state.problem.inputs, testcase: state.problem.testcase, driverCode: state.problem.driverCode } }
+		const newState = { isLoading: state.isLoading, problem: { title: newValue, difficulty: state.problem.difficulty, description: state.problem.description, inputs: state.problem.inputs, testcase: state.problem.testcase, driverCode: state.problem.driverCode } }
 		set(problemState, newState);
 	}
 });
 
+export const problemDifficulty = selector({
+	key: "problemDifficulty",
+	get: ({ get }) => {
+		const state = get(problemState);
+		return state.problem.difficulty;
+	},
+	set: ({ set, get }, newValue) => {
+		const state = get(problemState);
+		const newState = { isLoading: state.isLoading, problem: { title: state.problem.title, difficulty: newValue, description: state.problem.description, inputs: state.problem.inputs, testcase: state.problem.testcase, driverCode: state.problem.driverCode } }
+		set(problemState, newState);
+	}
+});
 
 export const problemDescription = selector({
 	key: "problemDescription",
@@ -45,7 +57,7 @@ export const problemDescription = selector({
 	},
 	set: ({ set, get }, newValue) => {
 		const state = get(problemState);
-		const newState = { isLoading: state.isLoading, problem: { title: state.problem.title, description: newValue, inputs: state.problem.inputs, testcase: state.problem.testcase, driverCode: state.problem.driverCode } }
+		const newState = { isLoading: state.isLoading, problem: { title: state.problem.title, difficulty: state.problem.difficulty, description: newValue, inputs: state.problem.inputs, testcase: state.problem.testcase, driverCode: state.problem.driverCode } }
 		set(problemState, newState);
 	}
 });
@@ -58,7 +70,7 @@ export const problemInputs = selector({
 	},
 	set: ({ set, get }, newInputs) => {
 		const state = get(problemState);
-		const newState = { isLoading: state.isLoading, problem: { title: state.problem.title, description: state.problem.description, inputs: newInputs, testcase: state.problem.testcase, driverCode: state.problem.driverCode } }
+		const newState = { isLoading: state.isLoading, problem: { title: state.problem.title, difficulty: state.problem.difficulty, description: state.problem.description, inputs: newInputs, testcase: state.problem.testcase, driverCode: state.problem.driverCode } }
 		set(problemState, newState);
 	}
 });
@@ -72,7 +84,7 @@ export const problemTestcase = selector({
 	},
 	set: ({ set, get }, newTestcase) => {
 		const state = get(problemState);
-		const newState = { isLoading: state.isLoading, problem: { title: state.problem.title, description: state.problem.description, inputs: state.problem.inputs, testcase: newTestcase, driverCode: state.problem.driverCode } }
+		const newState = { isLoading: state.isLoading, problem: { title: state.problem.title, difficulty: state.problem.difficulty, description: state.problem.description, inputs: state.problem.inputs, testcase: newTestcase, driverCode: state.problem.driverCode } }
 		set(problemState, newState);
 	}
 });
@@ -85,7 +97,7 @@ export const problemDriverCode = selector({
 	},
 	set: ({ set, get }, newDriverCode) => {
 		const state = get(problemState);
-		const newState = { isLoading: state.isLoading, problem: { title: state.problem.title, description: state.problem.description, inputs: state.problem.inputs, testcase: state.problem.testcase, driverCode: newDriverCode } }
+		const newState = { isLoading: state.isLoading, problem: { title: state.problem.title, difficulty: state.problem.difficulty, description: state.problem.description, inputs: state.problem.inputs, testcase: state.problem.testcase, driverCode: newDriverCode } }
 		set(problemState, newState);
 	}
 });

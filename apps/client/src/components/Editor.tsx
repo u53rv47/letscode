@@ -7,27 +7,27 @@ import useResizer from "./hooks/useResizer";
 import Description from "./editor/Description";
 import CodeEditor from "./editor/CodeEditor";
 import Console from "./editor/Console";
-import { initialProblem, problemState } from "../store/atoms/problem";
-import { isProblemLoading } from '../store/selectors/problem';
+import { isSolutionLoading } from '../store/selectors/solution';
+import { solutionState, initialSolution } from '../store/atoms/solution';
 
 function Editor(): JSX.Element {
-	const setProblem = useSetRecoilState(problemState);
-	const problemLoading = useRecoilValue(isProblemLoading);
+	const setSolution = useSetRecoilState(solutionState);
+	const solutionLoading = useRecoilValue(isSolutionLoading);
 	const { slug } = useParams();
 
 	useEffect(() => {
-		axios.get(`http://localhost:3000/problem/${slug}`, {
+		axios.get(`http://localhost:3000/solution/${slug}`, {
 			headers: {
 				"Authorization": "Bearer " + localStorage.getItem("token")
 			}
 		}).then(res => {
-			const problem = { title: res.data.title, description: res.data.description, inputs: res.data.inputs, testcase: res.data.testcase, driverCode: res.data.driverCode }
-			setProblem({ isLoading: false, problem });
-			console.log("Response(Editor)")
+			const solution = { title: res.data.title, description: res.data.description, inputs: res.data.inputs, testcase: res.data.testcase, result: res.data.result }
+			setSolution({ isLoading: false, solution });
+			console.log("Response from Editor")
 			console.log(res.data)
 		})
 			.catch(e => {
-				setProblem({ isLoading: false, problem: initialProblem });
+				setSolution({ isLoading: false, solution: initialSolution });
 			});
 	}, []);
 
@@ -53,10 +53,9 @@ function Editor(): JSX.Element {
 		<div style={{
 			display: "flex",
 			justifyContent: "space-between",
-			width: "100vw",
-			height: "95.5vh",
+			width: "100%",
+			height: "100%",
 			background: "white",
-			// marginTop: "10px"
 		}}>
 			{/* First child of MainArea => Description box = Description + verticalResizer */}
 			<div ref={refDescription}
@@ -64,9 +63,10 @@ function Editor(): JSX.Element {
 					display: "flex",
 					justifyContent: "space-between",
 					width: "40%",
+					height: "100%",
 					minWidth: "384px",
 				}}>
-				{!problemLoading && <Description />}
+				{!solutionLoading && <Description />}
 				<div ref={refVertical} style={{
 					display: "flex",
 					flexDirection: "column",
@@ -88,15 +88,17 @@ function Editor(): JSX.Element {
 					flexDirection: "column",
 					justifyContent: "space-between",
 					width: "60%",
+					height: "100%",
 					minWidth: "500px",
-				}}>
+				}}
+			>
 				{/* CodeEditor */}
 				<div ref={refCodeEditor}
 					style={{
-						height: "70%",
+						height: "60%",
 						minHeight: "200px",
 					}}>
-					{!problemLoading && <CodeEditor />}
+					{!solutionLoading && <CodeEditor />}
 				</div>
 				{/* Console =  HorizontalResizer + Console*/}
 				<div ref={refConsole}
@@ -104,24 +106,23 @@ function Editor(): JSX.Element {
 						display: "flex",
 						flexDirection: "column",
 						justifyContent: "space-between",
-						height: "30%",
-						minHeight: "100px",
+						minHeight: "200px",
+						height: "40%",
 					}}>
 
 					<div ref={refHorizontal} style={{
 						display: "flex",
 						justifyContent: "center",
 						cursor: "row-resize",
-						background: "white"
-
+						background: "white",
 					}}>
 						<MoreHoriz fontSize="large" style={{
-							marginTop: -12,
-							marginBottom: -12,
+							marginTop: "-12px",
+							marginBottom: "-12px",
 							color: "#767676"
 						}} />
 					</div>
-					{!problemLoading && <Console />}
+					{!solutionLoading && <Console />}
 				</div>
 			</div>
 		</div>

@@ -1,5 +1,5 @@
 import { selector } from "recoil";
-import { solutionState, tempSolutionState, tempTestcaseState } from "../atoms/solution";
+import { solutionState } from "../atoms/solution";
 import { languages } from "../atoms/problem";
 
 export const solutionDetails = selector({
@@ -24,33 +24,30 @@ export const isSolutionLoading = selector({
 });
 
 
-export const solutionlanguage = selector({
-	key: "solutionLanguage",
+export const solutionTitle = selector({
+	key: "solutionTitle",
 	get: ({ get }) => {
 		const state = get(solutionState);
-		return state.solution.language;
-	},
-	set: ({ set, get }, newValue) => {
-		const state = get(solutionState);
-		const newState = { isLoading: state.isLoading, solution: { language: newValue, value: state.solution.value } }
-		set(solutionState, newState);
+		return state.solution.title;
 	}
 });
 
 
-export const solutionValue = selector({
-	key: "solutionValue",
+export const solutionDescription = selector({
+	key: "solutionDescription",
 	get: ({ get }) => {
 		const state = get(solutionState);
-		return state.solution.value;
-	},
-	set: ({ set, get }, newValue) => {
-		const state = get(solutionState);
-		const newState = { isLoading: state.isLoading, solution: { language: state.solution.language, value: newValue } }
-		set(solutionState, newState);
+		return state.solution.description;
 	}
 });
 
+export const solutionInputs = selector({
+	key: "solutionInputs",
+	get: ({ get }) => {
+		const state = get(solutionState);
+		return state.solution.inputs;
+	}
+});
 
 export const solutionTestcase = selector({
 	key: "solutionTestcase",
@@ -60,21 +57,20 @@ export const solutionTestcase = selector({
 	},
 	set: ({ set, get }, newValue) => {
 		const state = get(solutionState);
-		const newState = { isLoading: state.isLoading, solution: { language: state.solution.language, value: state.solution.value, testcase: newValue } }
+		const newState = { isLoading: state.isLoading, solution: { title: state.solution.title, description: state.solution.description, inputs: state.solution.inputs, testcase: newValue, result: state.solution.result } }
 		set(solutionState, newState);
 	}
 });
 
-export const tempSolution = selector({
-	key: "tempSolution",
+export const solutionResult = selector({
+	key: "solutionResult",
 	get: ({ get }) => {
-		return get(tempSolutionState);
-	}
-});
-
-export const tempTestcase = selector({
-	key: "tempTestcase",
-	get: ({ get }) => {
-		return get(tempTestcaseState);
+		const state = get(solutionState);
+		return state.solution.result;
+	},
+	set: ({ set, get }, newValue) => {
+		const state = get(solutionState);
+		const newState = { isLoading: state.isLoading, solution: { title: state.solution.title, description: state.solution.description, inputs: state.solution.inputs, testcase: state.solution.testcase, result: newValue } }
+		set(solutionState, newState);
 	}
 });

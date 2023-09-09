@@ -40,12 +40,26 @@ const auth_1 = __importStar(require("../middleware/auth"));
 const db_1 = require("../db");
 const common_1 = require("common");
 const router = express_1.default.Router();
+router.get('/', auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.user.userId;
+    if (userId) {
+        const user = yield db_1.User.findById(userId);
+        if (user) {
+            res.json({ message: "Success", user: { id: user._id, name: user.name, username: user.username, solved: user.solved, attempted: user.attempted } });
+        }
+    }
+    else {
+        res.status(400).json({ message: "Invalid credentials" });
+    }
+}));
 router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.body);
     const credentials = common_1.signupInput.safeParse(req.body);
     if (!credentials.success) {
         res.status(400).json({ message: "Invalid credentials" });
     }
     else {
+        const name = credentials.data.name;
         const username = credentials.data.username;
         const password = credentials.data.password;
         const user = yield db_1.User.findOne({ username });
@@ -54,7 +68,7 @@ router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         else {
             let encryptedPassword = (0, auth_1.encrypt)(password);
-            const newUser = new db_1.User({ username, password: encryptedPassword });
+            const newUser = new db_1.User({ name, username, password: encryptedPassword });
             yield newUser.save();
             const token = (0, auth_1.generateToken)(username, newUser.id);
             res.json({ message: 'User created successfully', token });
@@ -62,9 +76,9 @@ router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 }));
 router.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const credentials = common_1.signupInput.safeParse(req.body);
+    const credentials = common_1.signinInput.safeParse(req.body);
     if (!credentials.success) {
-        res.status(400).json({ message: "Invalid credentials" });
+        res.status(400).json({ message: "Invalid credentials." });
     }
     else {
         const username = credentials.data.username;
@@ -74,13 +88,13 @@ router.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function*
             const decryptedPassword = (0, auth_1.decrypt)(user.password);
             if (password === decryptedPassword) {
                 const token = (0, auth_1.generateToken)(username, user.id);
-                res.json({ message: 'Logged in successfully', token });
+                res.json({ message: 'Logged in successfully.', token });
             }
             else
-                res.status(400).json({ message: "Incorrect password" });
+                res.status(400).json({ message: "Incorrect password." });
         }
         else
-            res.status(400).json({ message: "Incorrect username / Does not exists" });
+            res.status(400).json({ message: "Incorrect username / Does not exists." });
     }
 }));
 router.delete("/delete", auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {

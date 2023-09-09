@@ -1,21 +1,30 @@
+import axios from "axios";
+import edit from '../assets/edit.png'
 import { useState, useEffect } from "react";
 import { Grid, Typography, Link } from "@mui/material";
-import axios from "axios";
+import EditIcon from "../assets/EditIcon";
+import { useRecoilValue } from "recoil";
+import { userIdState } from "../store/selectors/user";
 
 
 function Home(): JSX.Element {
 	const [problems, setProblems] = useState([]);
+	const userId = useRecoilValue(userIdState);
 
 	useEffect(() => {
 		axios.get("http://localhost:3000/problem/")
 			.then((res) => {
+				console.log("Homepage request:")
+				console.log(res.data)
 				setProblems(res.data);
 			});
 	}, [])
 	return (
 		<Grid container style={{
+			width: "100%",
+			marginTop: 50,
+			paddingBottom: 20,
 			background: "#eee",
-			marginTop: 50
 		}}>
 			<Grid item lg={3} md={1} sm={0} xs={0} />
 			<Grid item lg={6} md={10} sm={12} xs={12}>
@@ -43,8 +52,10 @@ function Home(): JSX.Element {
 					</div>
 
 					{problems.map((problem, index) => {
-						console.log(problem.title)
-						return <Problem key={problem._id} title={problem.title} index={index} />
+						let editable = false;
+						if (userId && userId === problem._id)
+							editable = true;
+						return <Problem key={problem._id} title={problem.title} index={index} editable />
 					})}
 
 				</div>
@@ -58,11 +69,12 @@ interface ProblemProps {
 	key: string;
 	title: string;
 	index: number;
+	editable: boolean;
 }
 function Problem(props: ProblemProps): JSX.Element {
 	const bgColor = props.index % 2 === 0 ? "#eee" : "#fff";
+	const color = props.index % 2 === 0 ? "#fff" : "#eee";
 	const slug = props.title.split(".")[1].trim().split(" ").join("-").toLowerCase();
-	console.log(slug)
 
 	return (
 		<div style={{
@@ -83,7 +95,18 @@ function Problem(props: ProblemProps): JSX.Element {
 					}
 				}}>{props.title}</Link></Typography>
 			</div>
-			<Typography></Typography>
+
+			{props.editable && <Link
+				href={`edit/${slug}`}
+				color="#000"
+				width="45px"
+				sx={{
+					":hover": { color: "#1976d2 !important" }
+				}}
+			>
+				<EditIcon fontSize="32px" color="inherit" />
+			</Link>}
+
 		</div>
 	);
 }

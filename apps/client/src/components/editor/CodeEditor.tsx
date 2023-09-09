@@ -2,18 +2,20 @@ import { Button, Select, MenuItem, SelectChangeEvent, Switch, FormControlLabel }
 import Editor from '@monaco-editor/react'
 import { useState, useEffect } from 'react'
 import { useRecoilState, useRecoilValue } from "recoil";
-import { tempSolutionState } from "../../store/atoms/solution";
-import { problemDriverCode } from "../../store/selectors/problem";
+import { resultState } from "../../store/atoms/solution";
+import { solutionResult } from "../../store/selectors/solution";
+import { languages } from "../../store/atoms/problem";
 
 
 function CodeEditor(): JSX.Element {
 	const [theme, setTheme] = useState('Dark');
-	const driverCode = useRecoilValue(problemDriverCode);
-	const [solution, setSolution] = useRecoilState(tempSolutionState);
+	const sResult = useRecoilValue(solutionResult);
+	const [result, setResult] = useRecoilState(resultState);
 
 	const editorTheme = theme === 'Dark' ? 'vs-dark' : 'light';
+
 	useEffect(() => {
-		setSolution({ language: 'java', value: driverCode['java'].value });
+		setResult({ language: 'java', result: sResult.java });
 	}, [])
 	return (
 		<div style={{
@@ -31,19 +33,16 @@ function CodeEditor(): JSX.Element {
 			}}>
 				<Select
 					variant="standard"
-					value={solution.language}
+					value={result.language}
 					onChange={(event: SelectChangeEvent) => {
 						const language = event.target.value as string
-						setSolution({ language, value: driverCode[language].value });
+						setResult({ language, result: sResult[language] });
 					}}
 				>
 					<MenuItem value='java'>Java</MenuItem>
 					<MenuItem value='python'>Python</MenuItem>
 					<MenuItem value='javascript'>JavaScript</MenuItem>
 				</Select>
-				<Button onClick={() => {
-					console.log(solution.value)
-				}}>Log me</Button>
 				<FormControlLabel
 					control={
 						< Switch onChange={(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
@@ -59,12 +58,12 @@ function CodeEditor(): JSX.Element {
 
 			<Editor
 				theme={editorTheme}
-				defaultLanguage={solution.language}
-				defaultValue={solution.value}
-				language={solution.language}
-				value={solution.value}
+				defaultLanguage="java"
+				defaultValue={languages.java.result}
+				language={result.language}
+				value={result.result}
 				onChange={(newValue, e) => {
-					setSolution({ language: solution.language, value: newValue })
+					setResult({ language: result.language, result: newValue })
 				}}
 				options={{
 					minimap: { enabled: false },
