@@ -71,7 +71,7 @@ router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function*
             const newUser = new db_1.User({ name, username, password: encryptedPassword });
             yield newUser.save();
             const token = (0, auth_1.generateToken)(username, newUser.id);
-            res.json({ message: 'User created successfully', token });
+            res.json({ message: 'User created successfully', token, name: user.name });
         }
     }
 }));
@@ -88,7 +88,7 @@ router.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function*
             const decryptedPassword = (0, auth_1.decrypt)(user.password);
             if (password === decryptedPassword) {
                 const token = (0, auth_1.generateToken)(username, user.id);
-                res.json({ message: 'Logged in successfully.', token });
+                res.json({ message: 'Logged in successfully.', token, name: user.name });
             }
             else
                 res.status(400).json({ message: "Incorrect password." });

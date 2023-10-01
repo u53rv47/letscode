@@ -13,12 +13,12 @@ import { useNavigate } from "react-router-dom";
 function Publish(): JSX.Element {
 	const setProblem = useSetRecoilState(problemDetails);
 
-	useEffect(() => {
-		const problem = localStorage.getItem("problem")
-		if (problem)
-			setProblem(JSON.parse(problem));
-		else setProblem(initialProblem)
-	}, [])
+	// useEffect(() => {
+	// 	const problem = localStorage.getItem("problem")
+	// 	if (problem)
+	// 		setProblem(JSON.parse(problem));
+	// 	else setProblem(initialProblem)
+	// }, [])
 
 	return (
 		<Grid container style={{

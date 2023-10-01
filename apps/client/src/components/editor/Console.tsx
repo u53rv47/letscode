@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, Tabs, Tab, Typography, TextField, Button, dividerClasses } from '@mui/material';
 import { Add } from "@mui/icons-material";
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { solutionDetails, solutionInputs, solutionTestcase } from '../../store/selectors/solution';
+import { solutionInputs, solutionTestcase } from '../../store/selectors/solution';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { resultState, testcaseState } from '../../store/atoms/solution';
@@ -131,10 +131,8 @@ function ButtonPanel(): JSX.Element {
 	}}>	<Button variant='outlined'
 		style={{ textTransform: "none" }}
 		onClick={() => {
-			console.log(result);
-			console.log(testcase);
-
 			const data = { ...result, testcase };
+			console.log("Loging from Console")
 			console.log(data)
 		}}>Log me</Button>
 		<div>
@@ -149,6 +147,8 @@ function ButtonPanel(): JSX.Element {
 					axios.post(`http://localhost:3000/solution/${slug}`, {
 						data,
 						action: "run"
+					}, {
+						headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
 					})
 						.then(res => {
 							console.log(res.data);
@@ -166,6 +166,8 @@ function ButtonPanel(): JSX.Element {
 				axios.post(`http://localhost:3000/solution/${slug}`, {
 					data,
 					action: "submit"
+				}, {
+					headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
 				})
 					.then(res => {
 						console.log(res.data);

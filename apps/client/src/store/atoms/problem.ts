@@ -1,29 +1,7 @@
 import { atom } from "recoil";
+import { initialDesc, initialInputs, languages } from "../constants";
 
-export const initialDesc = '<p>Enter the problem description here...</p>'
-export const initialInputs = { name: "", type: "", add: true }
-export const languages = {
-	java: {
-		result:
-			`class Result{
-	public static void main(String[] args){
-		System.out.println("Hello World");
-	}
-}`,
-		driver: "driver",
-		solution: "solution",
-	},
-	python: {
-		result: 'print("Hello World")',
-		driver: "driver",
-		solution: "solution",
-	},
-	javascript: {
-		result: 'console.log("Hello World")',
-		driver: "driver",
-		solution: "solution",
-	}
-};
+
 
 export const initialProblem = { title: "", difficulty: "easy", description: initialDesc, inputs: [initialInputs,], testcase: "", driverCode: languages }
 
@@ -34,6 +12,15 @@ export const problemState = atom({
 		problem: initialProblem
 	},
 });
+
+
+const files: File[] = []
+export const fileState = atom({
+	key: "fileState",
+	default: files
+})
+
+
 
 /*
 export const titileState = atom({
@@ -66,9 +53,3 @@ export const driverCodeState = atom({
 	default: languages
 })
 */
-
-const files: File[] = []
-export const fileState = atom({
-	key: "fileState",
-	default: files
-})

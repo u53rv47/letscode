@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { MoreVert, MoreHoriz } from "@mui/icons-material";
 import useResizer from "./hooks/useResizer";
@@ -9,6 +9,7 @@ import CodeEditor from "./editor/CodeEditor";
 import Console from "./editor/Console";
 import { isSolutionLoading } from '../store/selectors/solution';
 import { solutionState, initialSolution } from '../store/atoms/solution';
+import { nameState } from '../store/selectors/user';
 
 function Editor(): JSX.Element {
 	const setSolution = useSetRecoilState(solutionState);

@@ -3,11 +3,14 @@ import { useEffect } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { Grid, TextField, Button, Typography, Select, MenuItem, FormControl, InputLabel, Input } from "@mui/material";
 import { problemTitle, problemTestcase, problemDetails, problemDifficulty } from "../store/selectors/problem";
-import { fileState, initialProblem, problemState, initialInputs } from "../store/atoms/problem";
+import { fileState, initialProblem, problemState } from "../store/atoms/problem";
+
 import TinyMCE from "./publish/TinyMCE";
 import Inputs from "./publish/Inputs";
 import DriverCode from "./publish/DriverCode";
 import { useNavigate, useParams } from "react-router-dom";
+import { initialInputs } from "../store/constants";
+import { nameState, userDetails } from "../store/selectors/user";
 
 
 function Edit(): JSX.Element {
@@ -203,6 +206,7 @@ function SubmitPanel(): JSX.Element {
 						}, [])
 
 						// Create FormData object
+						console.log(problem.driverCode);
 						const formData = new FormData();
 						formData.append('title', problem.title);
 						formData.append('difficulty', problem.difficulty);

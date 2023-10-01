@@ -1,11 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
 import { Card, Typography, Link, TextField, Button, Fade, Alert } from "@mui/material";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useRecoilState } from "recoil";
+import { nameState } from "../../store/selectors/user";
 
 function Signup(): JSX.Element {
 	const navigate = useNavigate()
-	const [name, setName] = useState("");
+	const [name, setName] = useRecoilState(nameState);
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 
@@ -95,7 +97,8 @@ function Signup(): JSX.Element {
 								})
 									.then(res => {
 										localStorage.setItem("token", res.data.token);
-										window.location.href = '/'
+										setName(res.data.name);
+										navigate(-2);
 									})
 									.catch(e => {
 										console.log(e.response.data.message);

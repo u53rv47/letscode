@@ -36,7 +36,7 @@ const router = express.Router();
 
 router.get("/", async (req: Request, res: Response) => {
 	try {
-		let problems = await Problem.find({}).select(["_id", "title", "userId"]);
+		const problems = await Problem.find({}).select(["_id", "title", "userId"]);
 		res.status(200).json(problems);
 	} catch (err) {
 		res.status(404).send({ message: "Not found", error: err });
@@ -46,7 +46,7 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/:slug", async (req: Request, res: Response) => {
 	const slug = req.params.slug;
 	try {
-		let problem = await Problem.findOne({ slug });
+		const problem = await Problem.findOne({ slug });
 		res.status(200).json(problem);
 	} catch (err) {
 		res.status(404).send({ message: "Not found", error: err });
@@ -68,7 +68,7 @@ router.post("/publish", authenticateJwt, fileUpload.array("files", 2), async (re
 				problem = new Problem({ title, difficulty, description, inputs: JSON.parse(inputs), testcase, driverCode: JSON.parse(driverCode), slug, testFilePath, outputFilePath, userId: req.user.userId });
 
 				await problem.save();
-				res.send({ id: problem.id, message: "Problem published successfully" });
+				res.status(200).send({ id: problem.id, message: "Problem published successfully" });
 			}
 			else res.status(400).json({ message: 'File could not be uploaded' });
 		}
@@ -86,7 +86,7 @@ router.patch('/:slug', authenticateJwt, fileUpload.array("files", 2), async (req
 			[updatedProblem.testFilePath, updatedProblem.outputFilePath] = (req.files[0].originalname.toLowerCase() === "testcase.txt") ? [path.join('uploads', req.files[0].filename.toLowerCase()), path.join('uploads', req.files[1].filename.toLowerCase())] : [path.join('uploads', req.files[1].filename.toLowerCase()), path.join('uploads', req.files[0].filename.toLowerCase())];
 
 		await Problem.updateOne({ slug }, updatedProblem);
-		res.send({ message: "Problem updated successfully" });
+		res.status(200).send({ message: "Problem updated successfully" });
 
 	} catch (err) {
 		console.log(err)

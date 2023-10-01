@@ -36,6 +36,11 @@ export const nameState = selector({
 	get: ({ get }) => {
 		const state = get(userState);
 		return state.user.name;
+	},
+	set: ({ set, get }, newValue) => {
+		const state = get(userState);
+		const newState = { isLoading: state.isLoading, user: { id: state.user.id, name: newValue, username: state.user.username, solved: state.user.solved, attempted: state.user.attempted } };
+		set(userState, newState);
 	}
 });
 

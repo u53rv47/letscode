@@ -2,8 +2,8 @@ import { TextField, Typography, Grid, FormControl, InputLabel, Select, MenuItem,
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { useState } from 'react';
-import { RecoilState, useRecoilState, useRecoilValue } from 'recoil'
-import { initialInputs } from '../../store/atoms/problem';
+import { useRecoilState, useRecoilValue } from 'recoil'
+import { initialInputs } from '../../store/constants';
 import { problemInputs } from '../../store/selectors/problem';
 
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRecoilState, useRecoilValue } from "recoil";
 import { resultState } from "../../store/atoms/solution";
 import { solutionResult } from "../../store/selectors/solution";
-import { languages } from "../../store/atoms/problem";
+import { languages } from "../../store/constants";
 
 
 function CodeEditor(): JSX.Element {

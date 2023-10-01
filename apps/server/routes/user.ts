@@ -37,7 +37,7 @@ router.post("/signup", async (req, res) => {
 			const newUser = new User({ name, username, password: encryptedPassword });
 			await newUser.save();
 			const token = generateToken(username, newUser.id);
-			res.json({ message: 'User created successfully', token });
+			res.json({ message: 'User created successfully', token, name: user.name });
 		}
 	}
 
@@ -58,7 +58,7 @@ router.post("/signin", async (req: Request, res: Response) => {
 			const decryptedPassword = decrypt(user.password);
 			if (password === decryptedPassword) {
 				const token = generateToken(username, user.id);
-				res.json({ message: 'Logged in successfully.', token });
+				res.json({ message: 'Logged in successfully.', token, name: user.name });
 
 			} else res.status(400).json({ message: "Incorrect password." });
 

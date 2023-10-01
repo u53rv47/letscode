@@ -1,6 +1,5 @@
 import { selector } from "recoil";
 import { solutionState } from "../atoms/solution";
-import { languages } from "../atoms/problem";
 
 export const solutionDetails = selector({
 	key: "solutionDetails",

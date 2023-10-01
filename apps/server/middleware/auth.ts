@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import CryptoJS from 'crypto-js';
 import mongoose from "mongoose";
+import { Request, Response, NextFunction } from 'express';
 require('dotenv').config();
 
 const SECRET = process.env.SECRET;
@@ -18,7 +19,7 @@ export function generateToken(username: string, userId: mongoose.Schema.Types.Ob
 	return jwt.sign({ username, userId }, SECRET, { expiresIn: '7d' })
 }
 
-function authenticateJwt(req, res, next) {
+function authenticateJwt(req: Request, res: Response, next: NextFunction) {
 	const authHeader: string = req.headers.authorization;
 	if (authHeader) {
 		const token: string = authHeader.split(' ')[1]

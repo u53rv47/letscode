@@ -1,5 +1,5 @@
 import { atom } from "recoil";
-import { languages } from "./problem";
+import { languages } from "../constants";
 import { initialIO } from "./temp";
 
 export const initialSolution = {
