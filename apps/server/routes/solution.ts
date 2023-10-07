@@ -2,7 +2,7 @@ import express, { Express, Request, Response } from "express";
 import fs from "fs-extra";
 import path from "path";
 import authenticateJwt from "../middleware/auth";
-import { Problem, User } from "../db"
+import { Problem, Solution, User } from "../db"
 import { createDriverFiles } from "../utils/fileHandler";
 import { consoleOutput, error, runContainer } from "../utils/codeRunner";
 
@@ -12,15 +12,17 @@ router.get("/:slug", async (req: Request, res: Response) => {
 	const slug = req.params.slug;
 	try {
 		const problem = await Problem.findOne({ slug });
+		let solution = await Solution.findOne({ problemId: problem._id });
 
 		const result = {}
-		result['java'] = problem.driverCode.java.result;
-		result['python'] = problem.driverCode.python.result;
-		result['javascript'] = problem.driverCode.javascript.result;
+		const langs = ["java", "python", "javascript"];
+		langs.forEach((val, i, arr) => {
+			if (solution.language !== val)
+				result[val] = problem.driverCode[val].result;
+			else result[val] = solution.solution;
+		});
 
-		const solution = { title: problem.title, description: problem.description, testcase: problem.testcase, inputs: problem.inputs, result };
-
-		res.status(200).json(solution);
+		res.status(200).json({ title: problem.title, description: problem.description, testcase: problem.testcase, inputs: problem.inputs, result });
 	} catch (err) {
 		res.status(404).send({ message: "Not found", error: err });
 	}
@@ -34,7 +36,10 @@ router.post("/:slug", authenticateJwt, async (req: Request, res: Response) => {
 	const action = req.body.action;
 
 	try {
-		const problem = await Problem.findOne({ slug }).select(["id", "driverCode"])
+		const problem = await Problem.findOne({ slug }).select(["id", "driverCode"]);
+
+		const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+		const solution = await Solution.findOneAndUpdate({ problemId: problem._id, userId }, { language, solution: result }, options);
 
 		// Add this problem to attempted if it's a submit request
 		if (action === "submit") {
@@ -65,25 +70,57 @@ router.post("/:slug", authenticateJwt, async (req: Request, res: Response) => {
 		createDriverFiles(problem.driverCode, result, language, dirPath, slug, action);
 		runContainer(dirPath, language, action, async () => {
 			if (error) {
-				res.status(400).send({ message: "An error occured while running the program.", result: "error", error: consoleOutput });
+				res.status(200).send({ result: "error", output: { message: "An error occured while running the program.", error: consoleOutput } });
 			} else {
 				const filePath = path.join(dirPath, "final_output.txt");
 				try {
 					const output = fs.readFileSync(filePath).toString().split("\n");
 					if (output[0] === "failed") {
-						let temp = consoleOutput.trim().split("\n");
-						const testcases = parseInt(output[2].split("/")[1]);
+						if (action === "run") {
+							// Transform console output
+							let temp = consoleOutput.trim().split("\n");
+							const testcases = parseInt(output[1].split("/")[1]);
+							const step = temp.length / testcases;
+							let testOutput: string[] = [];
+							for (let i = 0; i < temp.length; i += step) {
+								testOutput.push(temp.slice(i, i + step).join("\n"));
+							}
+							if (testOutput[0] === "")
+								testOutput = []
+							const result = { result: "failed", output: { output: output[1], actual_output: output[2], expected_output: output[3], failed_testcases: output[4], console_output: JSON.stringify(testOutput) } }
+							res.status(200).send({ ...result });
+						} else {
+							// Transform console output
+							let temp = consoleOutput.trim().split("\n");
+							const testcases = parseInt(output[1].split("/")[1]);
+							const failed = JSON.parse(output[4])[0] - 1;
+							const step = temp.length / testcases;
+							let testOutput: string[] = [];
 
-						const step = temp.length / testcases;
-						let testOutput: string[] = [];
-						for (let i = 0; i < temp.length; i += step) {
-							testOutput.push(temp.slice(i, i + step).join("\n"));
+							testOutput.push(temp.slice(failed, failed + step).join("\n"));
+							if (testOutput[0] === "")
+								testOutput = []
+
+							const result = { result: "failed", output: { output: output[1], actual_output: output[2], expected_output: output[3], input: output.slice(5).join("\n"), console_output: JSON.stringify(testOutput) } }
+
+							res.status(200).send({ ...result });
 						}
-
-						res.status(400).send({ result: "failed", failed_testcases: output[1], output: output[2], consoleOutput: testOutput })
 					} else if (output[0] === "passed") {
-						// Add this problem to solved if solved successfully
-						if (action === "submit") {
+						if (action === "run") {
+							// Transform console output
+							let temp = consoleOutput.trim().split("\n");
+							const testcases = parseInt(output[1].split("/")[1]);
+							const step = temp.length / testcases;
+							let testOutput: string[] = [];
+							for (let i = 0; i < temp.length; i += step) {
+								testOutput.push(temp.slice(i, i + step).join("\n"));
+							}
+							if (testOutput[0] === "")
+								testOutput = []
+
+							res.status(200).send({ result: "passed", output: { output: output[1], actual_output: output[2], expected_output: output[3], console_output: JSON.stringify(testOutput) } });
+						} else {
+							// Add this problem to solved if solved successfully
 							let flag = true;
 							const solved = (await User.findById(userId).select("solved")).solved
 							for (let i = 0; i < solved.length; i++) {
@@ -95,8 +132,8 @@ router.post("/:slug", authenticateJwt, async (req: Request, res: Response) => {
 							if (flag)
 								solved.push(problem._id);
 							await User.findByIdAndUpdate(userId, { solved });
+							res.status(200).send({ result: "passed", output: { output: output[1] } });
 						}
-						res.status(200).send({ result: "passed", output: output[1] })
 					} else {
 						// Send error as response
 						let err = output[1];
@@ -104,26 +141,29 @@ router.post("/:slug", authenticateJwt, async (req: Request, res: Response) => {
 							for (let i = 2; i < output.length; i++)
 								err += ("\n" + output[i]);
 						}
-						res.status(400).send({ message: "Internal Error.", result: "Internal Error", error: err, consoleOutput })
+						res.status(200).send({ result: "Internal Error", output: { error: err, console_output: consoleOutput } });
 					}
+
+
+
 				} catch (e) {
-					res.status(400).send({ message: "An error occured while reading oputput file.", result: "error", error: e, consoleOutput });
+					res.status(200).send({ result: "error", output: { message: "An error occured while reading oputput file.", error: e, console_output: consoleOutput } });
 				}
 			}
-
-			// fs.remove(dirPath)
-			// 	.then(() => {
-			// 		console.log(`Directory ${dirPath} has been removed.`);
-			// 	})
-			// 	.catch((err) => {
-			// 		console.error(`Error removing directory ${dirPath}: ${err}`);
-			// 	});
+			fs.remove(dirPath)
+				.then(() => {
+					console.log(`Directory ${dirPath} has been removed.`);
+				})
+				.catch((err) => {
+					console.error(`Error removing directory ${dirPath}: ${err}`);
+				});
 		});
-	} catch (err) {
-		console.log(err)
-		res.status(404).send({ message: "Something went wrong", error: err });
-	}
 
-})
+
+	} catch (err) {
+		console.log(err);
+		res.status(200).send({ result: "error", output: { message: "Something went wrong", error: err } });
+	}
+});
 
 export default router;

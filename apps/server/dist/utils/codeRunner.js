@@ -50,95 +50,101 @@ function runContainer(dirPath, language, action, cb) {
             `ACTION=${action}`,
         ],
     };
-    docker.createContainer(dockerOptions, (err, container) => {
-        if (err) {
-            console.error('Error creating container:', err.message);
-            return;
-        }
-        container.start((startErr) => __awaiter(this, void 0, void 0, function* () {
-            if (startErr) {
-                console.error('Error starting container:', startErr.message);
+    try {
+        docker.createContainer(dockerOptions, (err, container) => {
+            if (err) {
+                console.error('Error creating container:', err.message);
                 return;
             }
-            console.log('Container is running.');
-            if (language === "java") {
-                const compileOptions = {
-                    AttachStdout: true,
-                    AttachStderr: true,
-                    Cmd: ["javac", "Result.java", "Solution.java", "Driver.java"],
-                };
-                const compileExec = yield container.exec(compileOptions);
-                yield new Promise((resolve, reject) => {
-                    compileExec.start(compileOptions, (compileStartErr, compileStream) => {
-                        if (compileStartErr) {
-                            console.error('Error starting compile exec instance:', compileStartErr.message);
-                            reject(compileStartErr);
-                        }
-                        else {
-                            container.modem.demuxStream(compileStream, process.stdout, process.stderr);
-                            compileStream.on('data', (chunk) => {
-                                exports.error = true;
-                                exports.consoleOutput += clean(chunk.toString('utf8'));
-                            });
-                            compileStream.on('end', () => {
-                                console.log('Java program has been compiled.');
-                                resolve(compileStream);
-                            });
-                        }
-                    });
-                });
-            }
-            if (!exports.error) {
-                const runOptions = {
-                    AttachStdout: true,
-                    AttachStderr: true,
-                    Cmd: containers[language].run,
-                };
-                const runExec = yield container.exec(runOptions);
-                console.log("Running the program");
-                yield new Promise((resolve, reject) => {
-                    runExec.start(runOptions, (runStartErr, runStream) => {
-                        if (runStartErr) {
-                            console.error('Error starting run exec instance:', runStartErr.message);
-                            reject(runStartErr);
-                        }
-                        else {
-                            container.modem.demuxStream(runStream, process.stdout, process.stderr);
-                            runStream.on('data', (chunk) => {
-                                exports.consoleOutput += clean(chunk.toString('utf8'));
-                            });
-                            runStream.on('end', () => __awaiter(this, void 0, void 0, function* () {
-                                yield new Promise((resolve, reject) => {
-                                    runExec.inspect((inspectErr, data) => {
-                                        if (inspectErr) {
-                                            console.error('Error inspecting container:', inspectErr);
-                                            reject(inspectErr);
-                                        }
-                                        else {
-                                            const exitCode = data.ExitCode;
-                                            if (exitCode === 1)
-                                                exports.error = true;
-                                            resolve(data);
-                                        }
-                                    });
+            container.start((startErr) => __awaiter(this, void 0, void 0, function* () {
+                if (startErr) {
+                    console.error('Error starting container:', startErr.message);
+                    return;
+                }
+                console.log('Container is running.');
+                if (language === "java") {
+                    const compileOptions = {
+                        AttachStdout: true,
+                        AttachStderr: true,
+                        Cmd: ["javac", "Result.java", "Solution.java", "Driver.java"],
+                    };
+                    const compileExec = yield container.exec(compileOptions);
+                    yield new Promise((resolve, reject) => {
+                        compileExec.start(compileOptions, (compileStartErr, compileStream) => {
+                            if (compileStartErr) {
+                                console.error('Error starting compile exec instance:', compileStartErr.message);
+                                reject(compileStartErr);
+                            }
+                            else {
+                                container.modem.demuxStream(compileStream, process.stdout, process.stderr);
+                                compileStream.on('data', (chunk) => {
+                                    exports.error = true;
+                                    exports.consoleOutput += clean(chunk.toString('utf8'));
                                 });
-                                console.log('Program has finished.');
-                                resolve(runStream);
-                            }));
-                        }
+                                compileStream.on('end', () => {
+                                    console.log('Java program has been compiled.');
+                                    resolve(compileStream);
+                                });
+                            }
+                        });
                     });
-                });
-            }
-            container.stop(() => __awaiter(this, void 0, void 0, function* () {
-                cb();
-                exports.error = false;
-                exports.consoleOutput = "";
-                console.log("Container has been stopped.");
-                container.remove(() => {
-                    console.log('Container has been removed.');
-                });
+                }
+                if (!exports.error) {
+                    const runOptions = {
+                        AttachStdout: true,
+                        AttachStderr: true,
+                        Cmd: containers[language].run,
+                    };
+                    const runExec = yield container.exec(runOptions);
+                    console.log("Running the program");
+                    yield new Promise((resolve, reject) => {
+                        runExec.start(runOptions, (runStartErr, runStream) => {
+                            if (runStartErr) {
+                                console.error('Error starting run exec instance:', runStartErr.message);
+                                reject(runStartErr);
+                            }
+                            else {
+                                container.modem.demuxStream(runStream, process.stdout, process.stderr);
+                                runStream.on('data', (chunk) => {
+                                    exports.consoleOutput += clean(chunk.toString('utf8'));
+                                });
+                                runStream.on('end', () => __awaiter(this, void 0, void 0, function* () {
+                                    yield new Promise((resolve, reject) => {
+                                        runExec.inspect((inspectErr, data) => {
+                                            if (inspectErr) {
+                                                console.error('Error inspecting container:', inspectErr);
+                                                reject(inspectErr);
+                                            }
+                                            else {
+                                                const exitCode = data.ExitCode;
+                                                if (exitCode === 1)
+                                                    exports.error = true;
+                                                resolve(data);
+                                            }
+                                        });
+                                    });
+                                    console.log('Program has finished.');
+                                    resolve(runStream);
+                                }));
+                            }
+                        });
+                    });
+                }
+                container.stop(() => __awaiter(this, void 0, void 0, function* () {
+                    cb();
+                    exports.error = false;
+                    exports.consoleOutput = "";
+                    console.log("Container has been stopped.");
+                    container.remove(() => {
+                        console.log('Container has been removed.');
+                    });
+                }));
             }));
-        }));
-    });
+        });
+    }
+    catch (err) {
+        if (err)
+            console.error("Some error has occured: " + err);
+    }
 }
 exports.runContainer = runContainer;

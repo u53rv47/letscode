@@ -17,14 +17,14 @@ const options: HTMLReactParserOptions = {
 
 		if (name === 'h2' || name === 'h3' || name === 'h4') {
 			return (
-				<Typography variant={name} style={{ color: 'hotpink' }}>
+				<Typography variant={name}>
 					{domToReact(children, options)}
 				</Typography>
 			);
 		}
 		if (name === 'pre') {
 			return <pre style={{
-				background: "white",
+				background: "#F7F7F8",
 				borderRadius: "5px",
 				fontSize: "16px",
 				padding: "10px",
@@ -52,7 +52,7 @@ function Description() {
 			width: "100%",
 			height: "100%",
 			overflow: "auto",
-			background: "#eee"
+			background: "white"
 		}}>
 			<Typography variant="h4" style={{
 				marginTop: "10px"

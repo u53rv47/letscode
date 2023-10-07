@@ -65,10 +65,10 @@ export default function useResizer(
 
 		const onMouseMoveHorizontalResize = (event: MouseEvent) => {
 			const dy = event.clientY - yCord;
-			// uHeight = uHeight + dy;
-			// uHeight = uHeight + dy;
 			dHeight = dHeight - 2 * dy;
 			uHeight = uHeight + 2 * dy;
+			// dHeight = dHeight - dy;
+			// uHeight = uHeight + dy;
 			yCord = event.clientY;
 			uResizableElement.style.height = `${uHeight}px`;
 			dResizableElement.style.height = `${dHeight}px`;

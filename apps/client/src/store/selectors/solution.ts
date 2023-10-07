@@ -1,5 +1,5 @@
 import { selector } from "recoil";
-import { solutionState } from "../atoms/solution";
+import { responseState, solutionState } from "../atoms/solution";
 
 export const solutionDetails = selector({
 	key: "solutionDetails",
@@ -73,3 +73,29 @@ export const solutionResult = selector({
 		set(solutionState, newState);
 	}
 });
+
+export const responseResult = selector({
+	key: "responseResult",
+	get: ({ get }) => {
+		const state = get(responseState);
+		return state.result;
+	},
+	set: ({ set, get }, newValue) => {
+		const state = get(responseState);
+		const newState = { result: newValue, output: state.output };
+		set(responseState, newState);
+	}
+})
+
+export const responseOutput = selector({
+	key: "responseOutput",
+	get: ({ get }) => {
+		const state = get(responseState);
+		return state.output;
+	},
+	set: ({ set, get }, newValue) => {
+		const state = get(responseState);
+		const newState = { result: state.result, output: newValue };
+		set(responseState, newState);
+	}
+})

@@ -40,106 +40,139 @@ export function runContainer(dirPath: string, language: string, action: string, 
 		],
 	};
 	// Create the container
-	docker.createContainer(dockerOptions, (err, container) => {
-		if (err) {
-			console.error('Error creating container:', err.message);
-			return;
-		}
-		// Start the container
-		container.start(async (startErr) => {
-			if (startErr) {
-				console.error('Error starting container:', startErr.message);
+	try {
+		docker.createContainer(dockerOptions, (err, container) => {
+			if (err) {
+				console.error('Error creating container:', err.message);
 				return;
 			}
-			console.log('Container is running.');
+			// Start the container
+			container.start(async (startErr) => {
+				if (startErr) {
+					console.error('Error starting container:', startErr.message);
+					return;
+				}
+				console.log('Container is running.');
 
-			// Compile the Java program (if language is "java")
-			if (language === "java") {
-				const compileOptions: Docker.ExecCreateOptions = {
-					AttachStdout: true,
-					AttachStderr: true,
-					Cmd: ["javac", "Result.java", "Solution.java", "Driver.java"],
-				};
-				const compileExec = await container.exec(compileOptions);
-				await new Promise((resolve, reject) => {
-					compileExec.start(compileOptions, (compileStartErr, compileStream) => {
-						if (compileStartErr) {
-							console.error('Error starting compile exec instance:', compileStartErr.message);
-							reject(compileStartErr);
-						} else {
-							container.modem.demuxStream(compileStream, process.stdout, process.stderr);
+				// Compile the Java program (if language is "java")
+				if (language === "java") {
+					const compileOptions: Docker.ExecCreateOptions = {
+						AttachStdout: true,
+						AttachStderr: true,
+						Cmd: ["javac", "Result.java", "Solution.java", "Driver.java"],
+					};
+					const compileExec = await container.exec(compileOptions);
+					await new Promise((resolve, reject) => {
+						compileExec.start(compileOptions, (compileStartErr, compileStream) => {
+							if (compileStartErr) {
+								console.error('Error starting compile exec instance:', compileStartErr.message);
+								reject(compileStartErr);
+							} else {
+								container.modem.demuxStream(compileStream, process.stdout, process.stderr);
 
-							compileStream.on('data', (chunk) => {
-								error = true;
-								consoleOutput += clean(chunk.toString('utf8'));
-							});
-
-							compileStream.on('end', () => {
-								console.log('Java program has been compiled.');
-								resolve(compileStream);
-							});
-						}
-					});
-				});
-			}
-
-			// Run the program
-			if (!error) {
-				const runOptions: Docker.ExecCreateOptions = {
-					AttachStdout: true,
-					AttachStderr: true,
-					Cmd: containers[language].run,
-				};
-
-				const runExec = await container.exec(runOptions);
-				console.log("Running the program");
-				await new Promise((resolve, reject) => {
-					runExec.start(runOptions, (runStartErr, runStream) => {
-						if (runStartErr) {
-							console.error('Error starting run exec instance:', runStartErr.message);
-							reject(runStartErr);
-						} else {
-							container.modem.demuxStream(runStream, process.stdout, process.stderr);
-
-							runStream.on('data', (chunk) => {
-								consoleOutput += clean(chunk.toString('utf8'));
-							});
-
-							runStream.on('end', async () => {
-								await new Promise((resolve, reject) => {
-									runExec.inspect((inspectErr, data) => {
-										if (inspectErr) {
-											console.error('Error inspecting container:', inspectErr);
-											reject(inspectErr);
-										} else {
-											const exitCode = data.ExitCode;
-											// Check the exit code to determine success or failure
-											if (exitCode === 1)
-												error = true;
-											resolve(data);
-										}
-									});
+								compileStream.on('data', (chunk) => {
+									error = true;
+									consoleOutput += clean(chunk.toString('utf8'));
 								});
-								console.log('Program has finished.');
-								resolve(runStream);
-							});
 
-						}
+								compileStream.on('end', () => {
+									console.log('Java program has been compiled.');
+									resolve(compileStream);
+								});
+							}
+						});
 					});
-				});
-			}
+				}
 
-			// Stop and remove the container
-			container.stop(async () => {
-				cb();
-				error = false;
-				consoleOutput = "";
+				// // Run generic program
+				// const genericOptions: Docker.ExecCreateOptions = {
+				// 	AttachStdout: true,
+				// 	AttachStderr: true,
+				// 	Cmd: ["ls"],
+				// };
+				// const genericExec = await container.exec(genericOptions);
+				// console.log("Running the generic program");
+				// await new Promise((resolve, reject) => {
+				// 	genericExec.start(genericOptions, (genericStartErr, genericStream) => {
+				// 		if (genericStartErr) {
+				// 			console.error('Error starting run exec instance:', genericStartErr.message);
+				// 			reject(genericStartErr);
+				// 		} else {
+				// 			container.modem.demuxStream(genericStream, process.stdout, process.stderr);
 
-				console.log("Container has been stopped.")
-				container.remove(() => {
-					console.log('Container has been removed.');
+				// 			genericStream.on('data', (chunk) => {
+				// 				consoleOutput += clean(chunk.toString('utf8'));
+				// 			});
+
+				// 			genericStream.on('end', async () => {
+				// 				console.log('Generic Program has finished.');
+				// 				resolve(genericStream);
+				// 			});
+				// 		}
+				// 	});
+				// });
+
+				// Run the program
+				if (!error) {
+					const runOptions: Docker.ExecCreateOptions = {
+						AttachStdout: true,
+						AttachStderr: true,
+						Cmd: containers[language].run,
+					};
+
+					const runExec = await container.exec(runOptions);
+					console.log("Running the program");
+					await new Promise((resolve, reject) => {
+						runExec.start(runOptions, (runStartErr, runStream) => {
+							if (runStartErr) {
+								console.error('Error starting run exec instance:', runStartErr.message);
+								reject(runStartErr);
+							} else {
+								container.modem.demuxStream(runStream, process.stdout, process.stderr);
+
+								runStream.on('data', (chunk) => {
+									consoleOutput += clean(chunk.toString('utf8'));
+								});
+
+								runStream.on('end', async () => {
+									await new Promise((resolve, reject) => {
+										runExec.inspect((inspectErr, data) => {
+											if (inspectErr) {
+												console.error('Error inspecting container:', inspectErr);
+												reject(inspectErr);
+											} else {
+												const exitCode = data.ExitCode;
+												// Check the exit code to determine success or failure
+												if (exitCode === 1)
+													error = true;
+												resolve(data);
+											}
+										});
+									});
+									console.log('Program has finished.');
+									resolve(runStream);
+								});
+
+							}
+						});
+					});
+				}
+
+				// Stop and remove the container
+				container.stop(async () => {
+					cb();
+					error = false;
+					consoleOutput = "";
+
+					console.log("Container has been stopped.")
+					container.remove(() => {
+						console.log('Container has been removed.');
+					});
 				});
 			});
 		});
-	});
+	} catch (err) {
+		if (err)
+			console.error("Some error has occured: " + err);
+	}
 }

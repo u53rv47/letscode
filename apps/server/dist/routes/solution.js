@@ -24,12 +24,16 @@ router.get("/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* (
     const slug = req.params.slug;
     try {
         const problem = yield db_1.Problem.findOne({ slug });
+        let solution = yield db_1.Solution.findOne({ problemId: problem._id });
         const result = {};
-        result['java'] = problem.driverCode.java.result;
-        result['python'] = problem.driverCode.python.result;
-        result['javascript'] = problem.driverCode.javascript.result;
-        const solution = { title: problem.title, description: problem.description, testcase: problem.testcase, inputs: problem.inputs, result };
-        res.status(200).json(solution);
+        const langs = ["java", "python", "javascript"];
+        langs.forEach((val, i, arr) => {
+            if (solution.language !== val)
+                result[val] = problem.driverCode[val].result;
+            else
+                result[val] = solution.solution;
+        });
+        res.status(200).json({ title: problem.title, description: problem.description, testcase: problem.testcase, inputs: problem.inputs, result });
     }
     catch (err) {
         res.status(404).send({ message: "Not found", error: err });
@@ -42,6 +46,8 @@ router.post("/:slug", auth_1.default, (req, res) => __awaiter(void 0, void 0, vo
     const action = req.body.action;
     try {
         const problem = yield db_1.Problem.findOne({ slug }).select(["id", "driverCode"]);
+        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+        const solution = yield db_1.Solution.findOneAndUpdate({ problemId: problem._id, userId }, { language, solution: result }, options);
         if (action === "submit") {
             const attempted = (yield db_1.User.findById(userId).select("attempted")).attempted;
             let flag = true;
@@ -67,24 +73,53 @@ router.post("/:slug", auth_1.default, (req, res) => __awaiter(void 0, void 0, vo
         (0, fileHandler_1.createDriverFiles)(problem.driverCode, result, language, dirPath, slug, action);
         (0, codeRunner_1.runContainer)(dirPath, language, action, () => __awaiter(void 0, void 0, void 0, function* () {
             if (codeRunner_1.error) {
-                res.status(400).send({ message: "An error occured while running the program.", result: "error", error: codeRunner_1.consoleOutput });
+                res.status(200).send({ result: "error", output: { message: "An error occured while running the program.", error: codeRunner_1.consoleOutput } });
             }
             else {
                 const filePath = path_1.default.join(dirPath, "final_output.txt");
                 try {
                     const output = fs_extra_1.default.readFileSync(filePath).toString().split("\n");
                     if (output[0] === "failed") {
-                        let temp = codeRunner_1.consoleOutput.trim().split("\n");
-                        const testcases = parseInt(output[2].split("/")[1]);
-                        const step = temp.length / testcases;
-                        let testOutput = [];
-                        for (let i = 0; i < temp.length; i += step) {
-                            testOutput.push(temp.slice(i, i + step).join("\n"));
+                        if (action === "run") {
+                            let temp = codeRunner_1.consoleOutput.trim().split("\n");
+                            const testcases = parseInt(output[1].split("/")[1]);
+                            const step = temp.length / testcases;
+                            let testOutput = [];
+                            for (let i = 0; i < temp.length; i += step) {
+                                testOutput.push(temp.slice(i, i + step).join("\n"));
+                            }
+                            if (testOutput[0] === "")
+                                testOutput = [];
+                            const result = { result: "failed", output: { output: output[1], actual_output: output[2], expected_output: output[3], failed_testcases: output[4], console_output: JSON.stringify(testOutput) } };
+                            res.status(200).send(Object.assign({}, result));
                         }
-                        res.status(400).send({ result: "failed", failed_testcases: output[1], output: output[2], consoleOutput: testOutput });
+                        else {
+                            let temp = codeRunner_1.consoleOutput.trim().split("\n");
+                            const testcases = parseInt(output[1].split("/")[1]);
+                            const failed = JSON.parse(output[4])[0] - 1;
+                            const step = temp.length / testcases;
+                            let testOutput = [];
+                            testOutput.push(temp.slice(failed, failed + step).join("\n"));
+                            if (testOutput[0] === "")
+                                testOutput = [];
+                            const result = { result: "failed", output: { output: output[1], actual_output: output[2], expected_output: output[3], input: output.slice(5).join("\n"), console_output: JSON.stringify(testOutput) } };
+                            res.status(200).send(Object.assign({}, result));
+                        }
                     }
                     else if (output[0] === "passed") {
-                        if (action === "submit") {
+                        if (action === "run") {
+                            let temp = codeRunner_1.consoleOutput.trim().split("\n");
+                            const testcases = parseInt(output[1].split("/")[1]);
+                            const step = temp.length / testcases;
+                            let testOutput = [];
+                            for (let i = 0; i < temp.length; i += step) {
+                                testOutput.push(temp.slice(i, i + step).join("\n"));
+                            }
+                            if (testOutput[0] === "")
+                                testOutput = [];
+                            res.status(200).send({ result: "passed", output: { output: output[1], actual_output: output[2], expected_output: output[3], console_output: JSON.stringify(testOutput) } });
+                        }
+                        else {
                             let flag = true;
                             const solved = (yield db_1.User.findById(userId).select("solved")).solved;
                             for (let i = 0; i < solved.length; i++) {
@@ -96,8 +131,8 @@ router.post("/:slug", auth_1.default, (req, res) => __awaiter(void 0, void 0, vo
                             if (flag)
                                 solved.push(problem._id);
                             yield db_1.User.findByIdAndUpdate(userId, { solved });
+                            res.status(200).send({ result: "passed", output: { output: output[1] } });
                         }
-                        res.status(200).send({ result: "passed", output: output[1] });
                     }
                     else {
                         let err = output[1];
@@ -105,18 +140,25 @@ router.post("/:slug", auth_1.default, (req, res) => __awaiter(void 0, void 0, vo
                             for (let i = 2; i < output.length; i++)
                                 err += ("\n" + output[i]);
                         }
-                        res.status(400).send({ message: "Internal Error.", result: "Internal Error", error: err, consoleOutput: codeRunner_1.consoleOutput });
+                        res.status(200).send({ result: "Internal Error", output: { error: err, console_output: codeRunner_1.consoleOutput } });
                     }
                 }
                 catch (e) {
-                    res.status(400).send({ message: "An error occured while reading oputput file.", result: "error", error: e, consoleOutput: codeRunner_1.consoleOutput });
+                    res.status(200).send({ result: "error", output: { message: "An error occured while reading oputput file.", error: e, console_output: codeRunner_1.consoleOutput } });
                 }
             }
+            fs_extra_1.default.remove(dirPath)
+                .then(() => {
+                console.log(`Directory ${dirPath} has been removed.`);
+            })
+                .catch((err) => {
+                console.error(`Error removing directory ${dirPath}: ${err}`);
+            });
         }));
     }
     catch (err) {
         console.log(err);
-        res.status(404).send({ message: "Something went wrong", error: err });
+        res.status(200).send({ result: "error", output: { message: "Something went wrong", error: err } });
     }
 }));
 exports.default = router;

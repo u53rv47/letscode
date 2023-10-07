@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { MoreVert, MoreHoriz } from "@mui/icons-material";
 import useResizer from "./hooks/useResizer";
 import Description from "./editor/Description";
@@ -10,28 +10,42 @@ import Console from "./editor/Console";
 import { isSolutionLoading } from '../store/selectors/solution';
 import { solutionState, initialSolution } from '../store/atoms/solution';
 import { nameState } from '../store/selectors/user';
+import { Loading } from './Loading';
 
 function Editor(): JSX.Element {
-	const setSolution = useSetRecoilState(solutionState);
-	const solutionLoading = useRecoilValue(isSolutionLoading);
 	const { slug } = useParams();
+	const navigate = useNavigate();
+
+	const solutionLoading = useRecoilValue(isSolutionLoading);
+	const [solution, setSolution] = useRecoilState(solutionState);
 
 	useEffect(() => {
-		axios.get(`http://localhost:3000/solution/${slug}`, {
-			headers: {
-				"Authorization": "Bearer " + localStorage.getItem("token")
-			}
-		}).then(res => {
-			const solution = { title: res.data.title, description: res.data.description, inputs: res.data.inputs, testcase: res.data.testcase, result: res.data.result }
-			setSolution({ isLoading: false, solution });
-			console.log("Response from Editor")
-			console.log(res.data)
-		})
-			.catch(e => {
-				setSolution({ isLoading: false, solution: initialSolution });
-			});
+		console.log(solution);
+		const name = localStorage.getItem("name");
+		if (name) {
+			axios.get(`http://localhost:3000/solution/${slug}`, {
+				headers: {
+					"Authorization": "Bearer " + localStorage.getItem("token"),
+				}
+			}).then(res => {
+				const solution = { title: res.data.title, description: res.data.description, inputs: res.data.inputs, testcase: res.data.testcase, result: res.data.result }
+				setSolution({ isLoading: false, solution });
+				console.log("Response from Editor")
+				console.log(res.data)
+			})
+				.catch(e => {
+					setSolution({ isLoading: false, solution: initialSolution });
+				});
+		} else navigate("/signin");
+
 	}, []);
 
+	if (solutionLoading)
+		return <Loading />
+	return <UI />
+}
+
+function UI(): JSX.Element {
 	const refDescription = useRef(null);
 	const refRightPanel = useRef(null);
 	const refCodeEditor = useRef(null);
@@ -48,7 +62,6 @@ function Editor(): JSX.Element {
 		refVertical,
 		refHorizontal
 	);
-
 	return (
 		//Main Area
 		<div style={{
@@ -65,9 +78,9 @@ function Editor(): JSX.Element {
 					justifyContent: "space-between",
 					width: "40%",
 					height: "100%",
-					minWidth: "384px",
+					minWidth: "380px",
 				}}>
-				{!solutionLoading && <Description />}
+				<Description />
 				<div ref={refVertical} style={{
 					display: "flex",
 					flexDirection: "column",
@@ -82,7 +95,6 @@ function Editor(): JSX.Element {
 					}} />
 				</div>
 			</div>
-			{/* Second child of MainArea ==> CodeEditor + (HorizontalResizer + Console)*/}
 			<div ref={refRightPanel}
 				style={{
 					display: "flex",
@@ -99,7 +111,7 @@ function Editor(): JSX.Element {
 						height: "60%",
 						minHeight: "200px",
 					}}>
-					{!solutionLoading && <CodeEditor />}
+					<CodeEditor />
 				</div>
 				{/* Console =  HorizontalResizer + Console*/}
 				<div ref={refConsole}
@@ -123,11 +135,10 @@ function Editor(): JSX.Element {
 							color: "#767676"
 						}} />
 					</div>
-					{!solutionLoading && <Console />}
+					<Console />
 				</div>
 			</div>
 		</div>
 	)
 }
-
 export default Editor;

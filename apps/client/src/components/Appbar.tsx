@@ -16,7 +16,7 @@ function Appbar(): JSX.Element {
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
-		if (token)
+		if (token) {
 			axios.get("http://localhost:3000/user/", {
 				headers: {
 					"Authorization": "Bearer " + token
@@ -27,6 +27,7 @@ function Appbar(): JSX.Element {
 					console.log(res)
 					setUser(res.data.user);
 				});
+		}
 	}, [])
 
 	return (
@@ -68,6 +69,7 @@ function Appbar(): JSX.Element {
 								}}
 								onClick={() => {
 									localStorage.removeItem("token");
+									localStorage.removeItem("name");
 									setUser(initialUser)
 								}}>
 								<LogoutIcon color="disabled" fontSize="small" />

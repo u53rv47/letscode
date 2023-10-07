@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
 	password: String,
 	solved: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Problem' }],
 	attempted: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Problem' }]
-})
+}, { timestamps: true })
 
 const problemSchema = new mongoose.Schema({
 	title: String,
@@ -45,27 +45,16 @@ const problemSchema = new mongoose.Schema({
 	outputFilePath: String,
 
 	userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-}, { timestamps: true })
+}, { timestamps: true });
 
-/*problemSchema.pre("save", function (next) {
-	if (fs.existsSync(this.testFilePath)) {
-		const newTestFilePath = path.join("uploads", this.slug, this.testFilePath.split('_')[1])
-		fs.rename(this.testFilePath, newTestFilePath, (err: Error) => {
-			if (err)
-				console.log("Test File couldn't be renamed");
-		});
-		this.testFilePath = newTestFilePath;
-	}
-	if (fs.existsSync(this.outputFilePath)) {
-		const newTestFilePath = path.join("uploads", this.slug, this.outputFilePath.split('_')[1])
-		fs.rename(this.outputFilePath, newTestFilePath, (err: Error) => {
-			if (err)
-				console.log("Output File couldn't be renamed");
-		});
-		this.outputFilePath = newTestFilePath;
-	}
-	next();
-});*/
+const solutionSchema = new mongoose.Schema({
+	language: String,
+	solution: String,
+
+	problemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Problem' },
+	userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+}, { timestamps: true });
 
 export const User = mongoose.model("User", userSchema);
 export const Problem = mongoose.model("Problem", problemSchema);
+export const Solution = mongoose.model("Solution", solutionSchema);

@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Box, Tabs, Tab, Typography, TextField, Button, dividerClasses } from '@mui/material';
-import { Add } from "@mui/icons-material";
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { solutionInputs, solutionTestcase } from '../../store/selectors/solution';
+import { Box, Tabs, Tab, Typography, TextField, Button, dividerClasses, CircularProgress } from '@mui/material';
+import { Add, Cancel, SettingsApplications } from "@mui/icons-material";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { responseOutput, responseResult, solutionInputs, solutionTestcase } from '../../store/selectors/solution';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import { resultState, testcaseState } from '../../store/atoms/solution';
+import { actionState, responseState, resultState, testcaseState } from '../../store/atoms/solution';
+import { Loading } from '../Loading';
+import { act } from 'react-dom/test-utils';
 
 {/* <CaseButtons len={len} setBtn={setBtn} /> */ }
 function Console(): JSX.Element {
 	const [tab, setTab] = useState(0);
 	const [btn, setBtn] = useState(0);
-	const testcase = useRecoilValue(solutionTestcase);
+
 	const inputs = useRecoilValue(solutionInputs);
+	const testcase = useRecoilValue(solutionTestcase);
 	const [solutionTest, setSolutionTest] = useRecoilState(testcaseState);
 
 	useEffect(() => {
@@ -23,13 +26,23 @@ function Console(): JSX.Element {
 	let len = 0;
 	if (solutionTest) {
 		len = inputs.length;
+		let last = false;
 		testcases = solutionTest.split('\n').reduce((resultArray, item, index) => {
 			const chunkIndex = Math.floor(index / len);
 			if (!resultArray[chunkIndex])
-				resultArray[chunkIndex] = [] // start a new chunk
-			resultArray[chunkIndex].push(item)
-			return resultArray
-		}, [])
+				resultArray[chunkIndex] = []; // start a new chunk
+			resultArray[chunkIndex].push(item);
+
+			let background = "transparent"; // Default is transparent
+			if (last) {
+				if (btn == chunkIndex)
+					background = "#eee"; // Change to gray
+				resultArray[chunkIndex].push(background);
+			}
+			last = !last;
+
+			return resultArray;
+		}, []);
 	}
 
 	return (
@@ -59,30 +72,31 @@ function Console(): JSX.Element {
 
 					<CustomTabPanel value={tab} index={0}>
 						{/* Button Panel */}
-						<div style={{ marginBottom: "10px" }}>
+						<div style={{ display: "flex", marginBottom: "10px" }}>
 							{testcases.map((tc, index) => {
-								return <Button key={"case" + index} variant='contained' size="small" style={{
-									marginRight: "10px", marginBottom: "5px", background: "#eee", color: "black", textTransform: "none"
-								}} onClick={() => {
-									setBtn(index);
-								}}> Case {index + 1}</Button>
+								return <Button key={"case" + index} size="small"
+									style={{
+										marginRight: "10px", marginBottom: "5px", background: tc[2], color: "black", textTransform: "none"
+									}}
+									onClick={() => {
+										setBtn(index);
+									}}> Case {index + 1}</Button>
 							})}
-							<Button variant='contained' size="small" style={{
-								marginRight: "10px", background: "#eee", color: "black", textTransform: "none"
-							}} onClick={() => {
-								if (testcases.length < 10) {
-									const newTestcases = testcases.concat(testcases.slice(testcases.length - 1, testcases.length));
-									var newTestcase = "";
-									for (var i = 0; i < newTestcases.length; i++)
-										for (var j = 0; j < len; j++) {
-											newTestcase += newTestcases[i][j]
-											if (i != newTestcases.length - 1 || j != len - 1)
-												newTestcase += "\n";
-										}
-									setSolutionTest(newTestcase);
-									setBtn(newTestcases.length - 1);
-								}
-							}}><Add fontSize='small' /></Button>
+							<div style={{ marginTop: "5px" }}
+								onClick={() => {
+									if (testcases.length < 10) {
+										const newTestcases = testcases.concat(testcases.slice(testcases.length - 1, testcases.length));
+										var newTestcase = "";
+										for (var i = 0; i < newTestcases.length; i++)
+											for (var j = 0; j < len; j++) {
+												newTestcase += newTestcases[i][j]
+												if (i != newTestcases.length - 1 || j != len - 1)
+													newTestcase += "\n";
+											}
+										setSolutionTest(newTestcase);
+										setBtn(newTestcases.length - 1);
+									}
+								}}> <Add fontSize='small' /></div>
 						</div>
 						{/* Inputs for each button */}
 						{inputs.map((input, idx) => {
@@ -111,19 +125,23 @@ function Console(): JSX.Element {
 					</CustomTabPanel>
 
 					<CustomTabPanel value={tab} index={1} >
-						<Typography>Run the code to see output</Typography>
+						<RunResult />
+						<SubmitResult />
 					</CustomTabPanel>
-				</div>
-				<ButtonPanel />
-			</div>}
+				</div >
+				<ButtonPanel setTab={setTab} />
+			</div >}
 		</>
 	)
 };
 
-function ButtonPanel(): JSX.Element {
+
+function ButtonPanel(props: BtnPanelProp): JSX.Element {
 	const { slug } = useParams();
 	const result = useRecoilValue(resultState);
 	const testcase = useRecoilValue(testcaseState);
+	const setAction = useSetRecoilState(actionState);
+	const setResponse = useSetRecoilState(responseState);
 	return <div style={{
 		display: "flex",
 		justifyContent: "space-between",
@@ -140,9 +158,9 @@ function ButtonPanel(): JSX.Element {
 				background: "#eee", color: "black", textTransform: "none"
 			}}
 				onClick={() => {
-					console.log(result);
-					console.log(testcase);
 					// Make a backend request
+					setAction({ isLoading: true, action: true });
+					props.setTab(1);
 					const data = { ...result, testcase };
 					axios.post(`http://localhost:3000/solution/${slug}`, {
 						data,
@@ -151,7 +169,8 @@ function ButtonPanel(): JSX.Element {
 						headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
 					})
 						.then(res => {
-							console.log(res.data);
+							setResponse(res.data);
+							setAction({ isLoading: false, action: true });
 						}).catch(e => {
 							console.log(e);
 						});
@@ -161,6 +180,8 @@ function ButtonPanel(): JSX.Element {
 			}} onClick={() => {
 				console.log(result);
 				console.log(testcase);
+				setAction({ isLoading: true, action: false });
+				props.setTab(1);
 				// Make a backend request
 				const data = { ...result, testcase };
 				axios.post(`http://localhost:3000/solution/${slug}`, {
@@ -170,7 +191,8 @@ function ButtonPanel(): JSX.Element {
 					headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
 				})
 					.then(res => {
-						console.log(res.data);
+						setResponse(res.data);
+						setAction({ isLoading: false, action: false });
 					}).catch(e => {
 						console.log(e);
 					});
@@ -179,10 +201,232 @@ function ButtonPanel(): JSX.Element {
 	</div>
 }
 
-interface TabPanelProps {
-	children?: React.ReactNode;
-	index: number;
-	value: number;
+function RunResult(): JSX.Element {
+	const [btn, setBtn] = useState(0);
+
+	const inputs = useRecoilValue(solutionInputs);
+	const solutionTest = useRecoilValue(testcaseState);
+
+	const action = useRecoilValue(actionState);
+	const result = useRecoilValue(responseResult);
+	const output = useRecoilValue(responseOutput);
+
+	useEffect(() => {
+		if (result === "failed" && action.action) {
+			let failed = JSON.parse(output.failed_testcases);
+			setBtn(failed[0] - 1);
+		}
+	}, []);
+
+	if (!action.action) return <></>
+	if (action.isLoading)
+		return <Loading />
+
+	console.log(output);
+	let actualOutput = [], expectedOutput = [], stdOutput = [], failedTests: number[] = [], testcases: any[] = [];
+	if (result !== "error") {
+		actualOutput = JSON.parse(output.actual_output);
+		expectedOutput = JSON.parse(output.expected_output);
+		stdOutput = JSON.parse(output.console_output);
+	}
+	if (result === "failed")
+		failedTests = JSON.parse(output.failed_testcases);
+	testcases = solutionTest ? getTestcases(inputs.length, solutionTest, btn, failedTests) : [];
+
+	switch (result) {
+		case "error": return <Error error={output.error} />
+		case "passed": return <div>
+			<Typography variant='h5' color="#2DB55D" paddingLeft="5px">Accepted</Typography>
+			<br />
+			<Result btn={btn} setBtn={setBtn} inputs={inputs} testcases={testcases} stdOutput={stdOutput} actualOutput={actualOutput} expectedOutput={expectedOutput} />
+		</div>
+		case "failed": return <div>
+			<Typography variant='h5' color="#EF4743" paddingLeft="5px">Wrong Answer</Typography>
+			<br />
+			<Result btn={btn} setBtn={setBtn} inputs={inputs} testcases={testcases} stdOutput={stdOutput} actualOutput={actualOutput} expectedOutput={expectedOutput} />
+		</div>
+	}
+	return <Center><Typography>Run the program to see output.</Typography></Center>
+}
+
+function SubmitResult(): JSX.Element {
+	const action = useRecoilValue(actionState);
+	const result = useRecoilValue(responseResult);
+	const output = useRecoilValue(responseOutput);
+
+	const inputs = useRecoilValue(solutionInputs);
+	const solutionTest = useRecoilValue(testcaseState);
+
+	if (action.action) return <></>
+	if (action.isLoading)
+		return <Loading />
+
+
+	let actualOutput: any[], expectedOutput: any[], stdOutput: any[], testcases: any[];
+	console.log(output);
+	if (result === "failed") {
+		actualOutput = [JSON.parse(output.actual_output)];
+		expectedOutput = [JSON.parse(output.expected_output)];
+		stdOutput = JSON.parse(output.console_output);
+
+		if (solutionTest) {
+			const len = inputs.length;
+			console.log(solutionTest.split('\n'))
+			testcases = output.input.split('\n').reduce((resultArray, item, index) => {
+				const chunkIndex = Math.floor(index / len);
+				if (!resultArray[chunkIndex])
+					resultArray[chunkIndex] = [] // start a new chunk
+				resultArray[chunkIndex].push(item);
+				return resultArray;
+			}, []);
+			console.log(testcases);
+		}
+	}
+
+	switch (result) {
+		case "error": return <Error error={output.error} />
+		case "passed": return <Center>
+			<Typography variant='h5' color="#2DB55D" paddingLeft="5px">Accepted</Typography>
+			<Typography>All Testcases are passed!</Typography>
+			<Typography>{output.output}</Typography>
+		</Center>
+
+		case "failed": return <div>
+			<Typography variant='h5' color="#EF4743" paddingLeft="5px">Wrong Answer</Typography>
+			<br />
+			<Result btn={0} inputs={inputs} testcases={testcases} stdOutput={stdOutput} actualOutput={actualOutput} expectedOutput={expectedOutput} />
+		</div>
+	}
+	return <Center>
+		<Typography>Run the program to see output.</Typography>
+	</Center>
+}
+
+function Center(props: CenterProps): JSX.Element {
+	return <div style={{
+		display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100%", height: "100%", position: "absolute"
+	}}>
+		<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+			{props.children}
+		</div>
+	</div>
+}
+
+function Error(props: ErrorProps) {
+	return <div>
+		<Typography variant='h5' color="#EF4743" paddingLeft="5px">Error</Typography>
+		<div style={{
+			borderRadius: "10px",
+			background: "#fde8e8",
+			padding: "10px",
+			width: "98%",
+			minHeight: "80px"
+		}}>
+			{props.error.split("\n").map((error, idx) => <Typography color="error">{error}</Typography>)}
+		</div>
+	</div>
+}
+
+function Result(props: ResultProps) {
+	const action = useRecoilValue(actionState);
+	return <div>
+		{action.action && <div style={{ marginBottom: "10px", marginLeft: "15px" }}>
+			{props.testcases.map((tc, index) => {
+				return <Button key={"case" + index} size="small"
+					style={{
+						marginRight: "10px", marginBottom: "5px", background: tc[2], color: "black", textTransform: "none"
+					}}
+					onClick={() => {
+						props.setBtn(index);
+					}}><span style={{ marginRight: "2px", color: tc[3] }}>●</span>Case {index + 1}</Button>
+			})}
+		</div>}
+		<Typography fontSize="17px" margin="0px 0px 2px 10px">Input</Typography>
+		{props.inputs.map((input, idx) => {
+			return <div key={"input" + idx} style={{
+				marginBottom: "10px",
+			}}>
+				<div style={{
+					borderRadius: "10px",
+					padding: "10px",
+					background: "#F7F7F8",
+					marginLeft: "5px"
+				}}>
+					<Typography fontSize="14px" color="#5C5C5C">{input.name + "="}</Typography>
+					<pre style={{
+						fontSize: "16px", margin: 0, padding: 0
+					}}>{props.testcases[props.btn][idx]}</pre>
+				</div>
+			</div>
+		})}
+		{props.stdOutput.some((element) => true) && <div>
+			<Typography fontSize="16px" margin="10px 0px 2px 10px">Stdout</Typography>
+			<div style={{
+				borderRadius: "10px",
+				padding: "10px",
+				background: "#F7F7F8",
+				marginLeft: "5px"
+			}}>
+				{props.stdOutput[props.btn].split("\n").map((stdout, idx) => <pre key={"stdout" + idx} style={{
+					fontSize: "16px", margin: 0, padding: 0
+				}}>{stdout}</pre>)}
+			</div>
+		</div>}
+		<Typography fontSize="16px" margin="10px 0px 2px 10px">Output</Typography>
+		<div style={{
+			borderRadius: "10px",
+			padding: "10px",
+			background: "#F7F7F8",
+			marginLeft: "5px"
+		}}>
+			<pre style={{
+				fontSize: "16px", margin: 0, padding: 0
+			}}>{JSON.stringify(props.actualOutput[props.btn])}</pre>
+		</div>
+		<Typography fontSize="16px" margin="10px 0px 2px 10px">Expected</Typography>
+		<div style={{
+			borderRadius: "10px",
+			padding: "10px",
+			background: "#F7F7F8",
+			marginLeft: "5px"
+		}}>
+			<pre style={{
+				fontSize: "16px", margin: 0, padding: 0
+			}}>{JSON.stringify(props.expectedOutput[props.btn])}</pre>
+		</div>
+	</div>
+}
+
+function getTestcases(len: number, solutionTest: string, btn: number, failedTests: number[]): any[] {
+	let last = false;
+	console.log("failedTests:", failedTests);
+	const testcases = solutionTest.split('\n').reduce((resultArray, item, index) => {
+		const chunkIndex = Math.floor(index / len);
+		if (!resultArray[chunkIndex])
+			resultArray[chunkIndex] = [] // start a new chunk
+		resultArray[chunkIndex].push(item);
+
+		let background = "transparent"; // Default is transparent
+		let color = "#2DB55D"; // Default is green
+		if (last) {
+			if (btn == chunkIndex)
+				background = "#eee"; // Change to gray
+			resultArray[chunkIndex].push(background);
+
+			if (failedTests) {
+				for (let i = 0; i < failedTests.length; i++) {
+					if (failedTests[i] === chunkIndex + 1)
+						color = "#EF4743"; // Change to red
+				}
+				resultArray[chunkIndex].push(color);
+			}
+		}
+		last = !last;
+
+		return resultArray;
+	}, []);
+	console.log(testcases);
+	return testcases;
 }
 
 function CustomTabPanel(props: TabPanelProps) {
@@ -194,6 +438,11 @@ function CustomTabPanel(props: TabPanelProps) {
 			hidden={value !== index}
 			id={`simple-tabpanel-${index}`} aria-labelledby={`simple-tab-${index}`}
 			{...other}
+			style={{
+				width: "98%",
+				height: "97%",
+				position: "relative"
+			}}
 		>
 			{value === index && (
 				<Box sx={{
@@ -212,6 +461,34 @@ function a11yProps(index: number) {
 		id: `simple-tab-${index}`,
 		'aria-controls': `simple-tabpanel-${index}`,
 	};
+}
+interface CenterProps {
+	children?: React.ReactNode;
+}
+
+interface BtnPanelProp {
+	setTab: React.Dispatch<React.SetStateAction<number>>;
+}
+
+interface ErrorProps {
+	error: string;
+}
+
+interface ResultProps {
+	btn?: number;
+	setBtn?: React.Dispatch<React.SetStateAction<number>>;
+
+	inputs: any[];
+	testcases: any[];
+	stdOutput: string[];
+	actualOutput: any[];
+	expectedOutput: any[];
+}
+
+interface TabPanelProps {
+	children?: React.ReactNode;
+	index: number;
+	value: number;
 }
 
 export default Console;
