@@ -1,23 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userInput = exports.signinInput = exports.signupInput = void 0;
+exports.driverCode = exports.files = exports.code = exports.languages = exports.userInput = exports.signinInput = exports.signupInput = void 0;
 const zod_1 = require("zod");
-// const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
-// 	if (issue.code === z.ZodIssueCode.too_small) {
-// 		if (issue.minimum === 6) {
-// 			return { message: "Username must be more than 6 characters" };
-// 		}
-// 	}
-// 	if (issue.code === z.ZodIssueCode.too_big) {
-// 		if (issue.maximum === 12) {
-// 			return { message: "Username must be less than 12 characters" };
-// 		}
-// 	}
-// 	if (issue.code === z.ZodIssueCode.custom) {
-// 		return { message: `less-than-${(issue.params || {}).minimum}` };
-// 	}
-// 	return { message: ctx.defaultError };
-// };
 exports.signupInput = zod_1.z.object({
     name: zod_1.z.string({
         required_error: "Username is required",
@@ -34,3 +18,27 @@ exports.signupInput = zod_1.z.object({
 });
 exports.signinInput = exports.signupInput.pick({ username: true, password: true });
 exports.userInput = exports.signupInput.pick({ name: true, username: true });
+exports.languages = ["java", "python", "javascript"];
+exports.code = ["driver", "solution", "result"];
+exports.files = {
+    java: ["Driver.java", "Solution.java", "Result.java"],
+    python: ["driver.py", "solution.py", "result.py"],
+    javascript: ["driver.js", "solution.js", "result.js"]
+};
+exports.driverCode = {
+    java: {
+        driver: "",
+        solution: "",
+        result: ""
+    },
+    python: {
+        driver: "",
+        solution: "",
+        result: ""
+    },
+    javascript: {
+        driver: "",
+        solution: "",
+        result: ""
+    },
+};

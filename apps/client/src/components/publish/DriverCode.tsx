@@ -80,7 +80,7 @@ function Result(props: DriverProps): JSX.Element {
 				newDriverCode[props.language] = {
 					result: e.target.value,
 					driver: driverCode[props.language].driver,
-					codeChecker: driverCode[props.language].codeChecker,
+					solution: driverCode[props.language].solution,
 				}
 				setDriverCode(newDriverCode);
 			}}></TextField>

@@ -1,26 +1,18 @@
-import fs from "fs";
-import path, { resolve } from "path";
+import fs from "fs-extra";
+import path from "path";
+import { languages, code, files } from "common";
 
-const code = ["driver", "solution", "result"]
-const files = {
-	"java": ["Driver.java", "Solution.java", "Result.java"],
-	"python": ["driver.py", "solution.py", "result.py"],
-	"javascript": ["driver.js", "solution.js", "result.js"]
+export function writeDriverFilesSync(slug, driverCode): void {
+	for (let i = 0; i < 3; i++) {
+		let dirPath = path.join("uploads", slug, "driverCode", languages[i]);
+		fs.mkdirSync(dirPath, { recursive: true });
+		for (let j = 0; j < 3; j++) {
+			let filePath = path.join(dirPath, files[languages[i]][j]);
+			let data = driverCode[languages[i]][code[j]];
+			fs.writeFileSync(filePath, data);
+		}
+	}
 }
-const containers = {
-	java: {
-		image: "openjdk:11",
-	},
-	python: {
-		image: "python:3.9-alpine",
-		run: "python driver.py",
-	},
-	javascript: {
-		image: "node:16.20-alpine",
-		run: "node driver.js",
-	},
-};
-
 export function createDriverFiles(driverCode, result: string, language: string, dirPath: string, slug: string, action: string) {
 	if (action === "submit") {
 		const files = ['output.txt', 'testcase.txt'];
@@ -76,4 +68,14 @@ export function createDriverFiles(driverCode, result: string, language: string, 
 	// 	else dockerfileContent += `RUN ${containers[language].run}`
 
 	// 	fs.writeFileSync(path.join(dirPath, "Dockerfile"), dockerfileContent)
+}
+
+export function removeDirSync(dirPath: string) {
+	fs.remove(dirPath)
+		.then(() => {
+			console.log(`Directory ${dirPath} has been removed.`);
+		})
+		.catch((err) => {
+			console.error(`Error removing directory ${dirPath}: ${err}`);
+		});
 }

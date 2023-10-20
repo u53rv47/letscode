@@ -4,9 +4,14 @@
     "build": {
       "dependsOn": [
         "^build"
-      ]
+      ],
+      "cache": false,
+      "persistent": true
     },
     "lint": {},
-    "dev": {}
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
   }
 }

@@ -2,9 +2,12 @@ import { useState } from "react";
 import axios from "axios";
 import { Card, Typography, Link, TextField, Button, Fade, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { userDetails } from "../../store/selectors/user";
+import { useSetRecoilState } from "recoil";
 
 function Signin(): JSX.Element {
-	const navigate = useNavigate()
+	const navigate = useNavigate();
+	const setUser = useSetRecoilState(userDetails);
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 
@@ -47,8 +50,9 @@ function Signin(): JSX.Element {
 								<br /><br />
 							</div>}
 						<TextField
-							fullWidth={true}
+							fullWidth
 							label="Email or Username"
+							type="email"
 							variant="outlined"
 							size="small"
 							onChange={e => {
@@ -57,10 +61,10 @@ function Signin(): JSX.Element {
 						/>
 						<br /><br />
 						<TextField
-							fullWidth={true}
+							fullWidth
 							label="Password"
+							type="password"
 							variant="outlined"
-							type={"password"}
 							size="small"
 							onChange={e => {
 								setPassword(e.target.value);
@@ -69,7 +73,8 @@ function Signin(): JSX.Element {
 						<br /><br />
 
 						<Button
-							fullWidth={true}
+							fullWidth
+							type="submit"
 							size="small"
 							variant="contained"
 							style={{
@@ -82,8 +87,9 @@ function Signin(): JSX.Element {
 								})
 									.then(res => {
 										localStorage.setItem("token", res.data.token);
-										localStorage.setItem("name", res.data.name);
-										navigate(-1);
+										localStorage.setItem("name", res.data.user.name);
+										setUser(res.data.user);
+										navigate("/");
 									})
 									.catch(e => {
 										console.log(e.response.data.message);

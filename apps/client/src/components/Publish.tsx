@@ -1,5 +1,4 @@
 import axios from "axios";
-import { useEffect } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { Grid, TextField, Button, Typography, Select, MenuItem, FormControl, InputLabel, Input } from "@mui/material";
 import { problemTitle, problemTestcase, problemDetails, problemDifficulty, problemInputs } from "../store/selectors/problem";

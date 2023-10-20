@@ -12,11 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const fs_extra_1 = __importDefault(require("fs-extra"));
 const path_1 = __importDefault(require("path"));
+const fs_extra_1 = __importDefault(require("fs-extra"));
+const express_1 = __importDefault(require("express"));
 const auth_1 = __importDefault(require("../middleware/auth"));
 const db_1 = require("../db");
+const common_1 = require("common");
 const fileHandler_1 = require("../utils/fileHandler");
 const codeRunner_1 = require("../utils/codeRunner");
 const router = express_1.default.Router();
@@ -26,8 +27,7 @@ router.get("/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* (
         const problem = yield db_1.Problem.findOne({ slug });
         let solution = yield db_1.Solution.findOne({ problemId: problem._id });
         const result = {};
-        const langs = ["java", "python", "javascript"];
-        langs.forEach((val, i, arr) => {
+        common_1.languages.forEach((val, i, arr) => {
             if (solution.language !== val)
                 result[val] = problem.driverCode[val].result;
             else
@@ -44,10 +44,13 @@ router.post("/:slug", auth_1.default, (req, res) => __awaiter(void 0, void 0, vo
     const userId = req.user.userId;
     const { language, result, testcase } = req.body.data;
     const action = req.body.action;
+    const dirPath = path_1.default.join("uploads", Date.now().toString());
+    fs_extra_1.default.mkdirSync(dirPath, { recursive: true });
+    console.log("\n\ndockerPath: ", dirPath);
     try {
         const problem = yield db_1.Problem.findOne({ slug }).select(["id", "driverCode"]);
         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-        const solution = yield db_1.Solution.findOneAndUpdate({ problemId: problem._id, userId }, { language, solution: result }, options);
+        yield db_1.Solution.findOneAndUpdate({ problemId: problem._id, userId }, { language, solution: result }, options);
         if (action === "submit") {
             const attempted = (yield db_1.User.findById(userId).select("attempted")).attempted;
             let flag = true;
@@ -61,9 +64,6 @@ router.post("/:slug", auth_1.default, (req, res) => __awaiter(void 0, void 0, vo
                 attempted.push(problem._id);
             yield db_1.User.findByIdAndUpdate(userId, { attempted });
         }
-        const dirPath = path_1.default.join("uploads", Date.now().toString());
-        console.log("\n\ndockerPath: ", dirPath);
-        fs_extra_1.default.mkdirSync(dirPath, { recursive: true });
         if (action === 'run') {
             fs_extra_1.default.writeFile(path_1.default.join(dirPath, 'testcase.txt'), testcase, (err) => {
                 if (err)
@@ -144,19 +144,15 @@ router.post("/:slug", auth_1.default, (req, res) => __awaiter(void 0, void 0, vo
                     }
                 }
                 catch (e) {
+                    (0, fileHandler_1.removeDirSync)(dirPath);
                     res.status(200).send({ result: "error", output: { message: "An error occured while reading oputput file.", error: e, console_output: codeRunner_1.consoleOutput } });
                 }
             }
-            fs_extra_1.default.remove(dirPath)
-                .then(() => {
-                console.log(`Directory ${dirPath} has been removed.`);
-            })
-                .catch((err) => {
-                console.error(`Error removing directory ${dirPath}: ${err}`);
-            });
+            (0, fileHandler_1.removeDirSync)(dirPath);
         }));
     }
     catch (err) {
+        (0, fileHandler_1.removeDirSync)(dirPath);
         console.log(err);
         res.status(200).send({ result: "error", output: { message: "Something went wrong", error: err } });
     }

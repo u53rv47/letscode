@@ -212,7 +212,7 @@ function RunResult(): JSX.Element {
 	const output = useRecoilValue(responseOutput);
 
 	useEffect(() => {
-		if (result === "failed" && action.action) {
+		if (output && result === "failed" && action.action) {
 			let failed = JSON.parse(output.failed_testcases);
 			setBtn(failed[0] - 1);
 		}
@@ -222,7 +222,6 @@ function RunResult(): JSX.Element {
 	if (action.isLoading)
 		return <Loading />
 
-	console.log(output);
 	let actualOutput = [], expectedOutput = [], stdOutput = [], failedTests: number[] = [], testcases: any[] = [];
 	if (result !== "error") {
 		actualOutput = JSON.parse(output.actual_output);
@@ -263,7 +262,6 @@ function SubmitResult(): JSX.Element {
 
 
 	let actualOutput: any[], expectedOutput: any[], stdOutput: any[], testcases: any[];
-	console.log(output);
 	if (result === "failed") {
 		actualOutput = [JSON.parse(output.actual_output)];
 		expectedOutput = [JSON.parse(output.expected_output)];
@@ -271,7 +269,6 @@ function SubmitResult(): JSX.Element {
 
 		if (solutionTest) {
 			const len = inputs.length;
-			console.log(solutionTest.split('\n'))
 			testcases = output.input.split('\n').reduce((resultArray, item, index) => {
 				const chunkIndex = Math.floor(index / len);
 				if (!resultArray[chunkIndex])
@@ -279,7 +276,6 @@ function SubmitResult(): JSX.Element {
 				resultArray[chunkIndex].push(item);
 				return resultArray;
 			}, []);
-			console.log(testcases);
 		}
 	}
 
@@ -313,6 +309,11 @@ function Center(props: CenterProps): JSX.Element {
 }
 
 function Error(props: ErrorProps) {
+	let error = "";
+	if (typeof props.error !== "string")
+		error = JSON.stringify(props.error, null, "\t");
+	else error = props.error;
+
 	return <div>
 		<Typography variant='h5' color="#EF4743" paddingLeft="5px">Error</Typography>
 		<div style={{
@@ -322,7 +323,8 @@ function Error(props: ErrorProps) {
 			width: "98%",
 			minHeight: "80px"
 		}}>
-			{props.error.split("\n").map((error, idx) => <Typography color="error">{error}</Typography>)}
+			{error.split("\n").map((error, idx) => <Typography key={"error " + idx}
+				color="error" sx={{whiteSpace: "pre"}}>{error}</Typography>)}
 		</div>
 	</div>
 }
@@ -399,7 +401,6 @@ function Result(props: ResultProps) {
 
 function getTestcases(len: number, solutionTest: string, btn: number, failedTests: number[]): any[] {
 	let last = false;
-	console.log("failedTests:", failedTests);
 	const testcases = solutionTest.split('\n').reduce((resultArray, item, index) => {
 		const chunkIndex = Math.floor(index / len);
 		if (!resultArray[chunkIndex])
@@ -425,7 +426,6 @@ function getTestcases(len: number, solutionTest: string, btn: number, failedTest
 
 		return resultArray;
 	}, []);
-	console.log(testcases);
 	return testcases;
 }
 

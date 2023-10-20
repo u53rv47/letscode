@@ -2,9 +2,12 @@ import { useState } from "react";
 import axios from "axios";
 import { Card, Typography, Link, TextField, Button, Fade, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useSetRecoilState } from "recoil";
+import { userDetails } from "../../store/selectors/user";
 
 function Signup(): JSX.Element {
-	const navigate = useNavigate()
+	const navigate = useNavigate();
+	const setUser = useSetRecoilState(userDetails);
 	const [name, setName] = useState("");
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
@@ -49,8 +52,9 @@ function Signup(): JSX.Element {
 								<br /><br />
 							</div>}
 						<TextField
-							fullWidth={true}
+							fullWidth
 							label="Name"
+							type="text"
 							variant="outlined"
 							size="small"
 							onChange={e => {
@@ -59,8 +63,9 @@ function Signup(): JSX.Element {
 						/>
 						<br /><br />
 						<TextField
-							fullWidth={true}
+							fullWidth
 							label="Email or Username"
+							type="email"
 							variant="outlined"
 							size="small"
 							onChange={e => {
@@ -69,10 +74,10 @@ function Signup(): JSX.Element {
 						/>
 						<br /><br />
 						<TextField
-							fullWidth={true}
+							fullWidth
 							label="Password"
+							type="password"
 							variant="outlined"
-							type={"password"}
 							size="small"
 							onChange={e => {
 								setPassword(e.target.value);
@@ -81,7 +86,8 @@ function Signup(): JSX.Element {
 						<br /><br />
 
 						<Button
-							fullWidth={true}
+							fullWidth
+							type="submit"
 							size="small"
 							variant="contained"
 							style={{
@@ -95,8 +101,9 @@ function Signup(): JSX.Element {
 								})
 									.then(res => {
 										localStorage.setItem("token", res.data.token);
-										localStorage.setItem("name", res.data.name);
-										navigate(-1);
+										localStorage.setItem("name", res.data.user.name);
+										setUser(res.data.user);
+										navigate("/");
 									})
 									.catch(e => {
 										console.log(e.response.data.message);

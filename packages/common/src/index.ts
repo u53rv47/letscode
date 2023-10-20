@@ -1,21 +1,5 @@
 import { z } from 'zod'
 
-// const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
-// 	if (issue.code === z.ZodIssueCode.too_small) {
-// 		if (issue.minimum === 6) {
-// 			return { message: "Username must be more than 6 characters" };
-// 		}
-// 	}
-// 	if (issue.code === z.ZodIssueCode.too_big) {
-// 		if (issue.maximum === 12) {
-// 			return { message: "Username must be less than 12 characters" };
-// 		}
-// 	}
-// 	if (issue.code === z.ZodIssueCode.custom) {
-// 		return { message: `less-than-${(issue.params || {}).minimum}` };
-// 	}
-// 	return { message: ctx.defaultError };
-// };
 
 export const signupInput = z.object({
 	name: z.string({
@@ -39,3 +23,36 @@ export const userInput = signupInput.pick({ name: true, username: true });
 export type SignupParams = z.infer<typeof signupInput>;
 export type SigninParams = z.infer<typeof signinInput>;
 export type UserParams = z.infer<typeof userInput>;
+
+
+export const languages = ["java", "python", "javascript"];
+export const code = ["driver", "solution", "result"];
+export const files = {
+	java: ["Driver.java", "Solution.java", "Result.java"],
+	python: ["driver.py", "solution.py", "result.py"],
+	javascript: ["driver.js", "solution.js", "result.js"]
+};
+
+export interface LanguageCode {
+	driver: string;
+	solution: string;
+	result: string;
+}
+
+export const driverCode: Record<string, LanguageCode> = {
+	java: {
+		driver: "",
+		solution: "",
+		result: ""
+	},
+	python: {
+		driver: "",
+		solution: "",
+		result: ""
+	},
+	javascript: {
+		driver: "",
+		solution: "",
+		result: ""
+	},
+};

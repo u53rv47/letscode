@@ -1,9 +1,10 @@
-import express, { Express, Request, Response } from "express";
-import fs from "fs-extra";
 import path from "path";
+import fs from "fs-extra";
+import express, { Request, Response } from "express";
 import authenticateJwt from "../middleware/auth";
-import { Problem, Solution, User } from "../db"
-import { createDriverFiles } from "../utils/fileHandler";
+import { Problem, Solution, User } from "../db";
+import { languages } from "common";
+import { createDriverFiles, removeDirSync } from "../utils/fileHandler";
 import { consoleOutput, error, runContainer } from "../utils/codeRunner";
 
 const router = express.Router();
@@ -15,8 +16,7 @@ router.get("/:slug", async (req: Request, res: Response) => {
 		let solution = await Solution.findOne({ problemId: problem._id });
 
 		const result = {}
-		const langs = ["java", "python", "javascript"];
-		langs.forEach((val, i, arr) => {
+		languages.forEach((val, i, arr) => {
 			if (solution.language !== val)
 				result[val] = problem.driverCode[val].result;
 			else result[val] = solution.solution;
@@ -35,11 +35,14 @@ router.post("/:slug", authenticateJwt, async (req: Request, res: Response) => {
 	const { language, result, testcase } = req.body.data;
 	const action = req.body.action;
 
+	const dirPath = path.join("uploads", Date.now().toString())
+	fs.mkdirSync(dirPath, { recursive: true });
+	console.log("\n\ndockerPath: ", dirPath);
 	try {
 		const problem = await Problem.findOne({ slug }).select(["id", "driverCode"]);
 
 		const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-		const solution = await Solution.findOneAndUpdate({ problemId: problem._id, userId }, { language, solution: result }, options);
+		await Solution.findOneAndUpdate({ problemId: problem._id, userId }, { language, solution: result }, options);
 
 		// Add this problem to attempted if it's a submit request
 		if (action === "submit") {
@@ -56,9 +59,6 @@ router.post("/:slug", authenticateJwt, async (req: Request, res: Response) => {
 			await User.findByIdAndUpdate(userId, { attempted });
 		}
 
-		const dirPath = path.join("uploads", Date.now().toString())
-		console.log("\n\ndockerPath: ", dirPath);
-		fs.mkdirSync(dirPath, { recursive: true });
 		if (action === 'run') {
 			// Use sample testcase
 			fs.writeFile(path.join(dirPath, 'testcase.txt'), testcase, (err: Error) => {
@@ -144,23 +144,18 @@ router.post("/:slug", authenticateJwt, async (req: Request, res: Response) => {
 						res.status(200).send({ result: "Internal Error", output: { error: err, console_output: consoleOutput } });
 					}
 
-
-
 				} catch (e) {
+					removeDirSync(dirPath);
 					res.status(200).send({ result: "error", output: { message: "An error occured while reading oputput file.", error: e, console_output: consoleOutput } });
 				}
 			}
-			fs.remove(dirPath)
-				.then(() => {
-					console.log(`Directory ${dirPath} has been removed.`);
-				})
-				.catch((err) => {
-					console.error(`Error removing directory ${dirPath}: ${err}`);
-				});
+			removeDirSync(dirPath);
 		});
 
 
 	} catch (err) {
+		removeDirSync(dirPath);
+
 		console.log(err);
 		res.status(200).send({ result: "error", output: { message: "Something went wrong", error: err } });
 	}

@@ -1,9 +1,36 @@
 import { atom } from "recoil";
-import { initialDesc, initialInputs, languages } from "../constants";
+// import { driverCode } from "common";
+import { code } from "common";
 
+console.log(code);
+export interface LanguageCode {
+	driver: string;
+	solution: string;
+	result: string;
+}
 
+export const driverCode: Record<string, LanguageCode> = {
+	java: {
+		driver: "",
+		solution: "",
+		result: ""
+	},
+	python: {
+		driver: "",
+		solution: "",
+		result: ""
+	},
+	javascript: {
+		driver: "",
+		solution: "",
+		result: ""
+	},
+};
 
-export const initialProblem = { title: "", difficulty: "easy", description: initialDesc, inputs: [initialInputs,], testcase: "", driverCode: languages }
+export const initialDesc = '<p>Enter the problem description here...</p>'
+export const initialInputs = { name: "", type: "", add: true }
+
+export const initialProblem = { title: "", difficulty: "easy", description: initialDesc, inputs: [initialInputs,], testcase: "", driverCode }
 
 export const problemState = atom({
 	key: 'problemState',

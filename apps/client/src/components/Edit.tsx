@@ -9,7 +9,7 @@ import TinyMCE from "./publish/TinyMCE";
 import Inputs from "./publish/Inputs";
 import DriverCode from "./publish/DriverCode";
 import { useNavigate, useParams } from "react-router-dom";
-import { initialInputs } from "../store/constants";
+import { initialInputs } from "../store/atoms/problem";
 import { nameState, userDetails } from "../store/selectors/user";
 
 

@@ -1,7 +1,4 @@
 import mongoose from 'mongoose'
-import fs from 'fs';
-import path from 'path';
-
 
 const userSchema = new mongoose.Schema({
 	name: String,

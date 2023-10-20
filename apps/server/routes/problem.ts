@@ -1,18 +1,17 @@
-import fs from "fs";
-import path from 'path';
+import fs from "fs-extra";
 import multer from 'multer';
+import path from 'path';
 import express, { Request, Response } from "express";
 import authenticateJwt from "../middleware/auth";
 import { Problem } from "../db"
+import { writeDriverFilesSync } from "../utils/fileHandler"
+import updateDrivers from "../drivers";
+updateDrivers()
+
 
 interface FileRequest extends express.Request {
 	testFile: Express.Multer.File;
 	outputFile: Express.Multer.File;
-}
-
-function slugify(title: string): string {
-	const cleanedTitle = title.replace(/^[0-9.]+/, '').trim();
-	return cleanedTitle.split(' ').join('-').toLowerCase();
 }
 
 const storage = multer.diskStorage({
@@ -29,8 +28,13 @@ const storage = multer.diskStorage({
 		cb(null, file.originalname);
 	},
 });
-
 const fileUpload = multer({ storage })
+
+function slugify(title: string): string {
+	const cleanedTitle = title.replace(/^[0-9.]+/, '').trim();
+	return cleanedTitle.split(' ').join('-').toLowerCase();
+}
+
 
 const router = express.Router();
 
@@ -62,15 +66,17 @@ router.post("/publish", authenticateJwt, fileUpload.array("files", 2), async (re
 		if (problem)
 			res.status(403).json({ message: 'Problem already exists' })
 		else {
+			let [testFilePath, outputFilePath] = ["", ""]
 			if (req.files.length !== 0) {
-				const [testFilePath, outputFilePath] = (req.files[0].originalname.toLowerCase() === "testcase.txt") ? [path.join('uploads', slug, req.files[0].filename.toLowerCase()), path.join('uploads', slug, req.files[1].filename.toLowerCase())] : [path.join('uploads', slug, req.files[1].filename.toLowerCase()), path.join('uploads', slug, req.files[0].filename.toLowerCase())];
-
-				problem = new Problem({ title, difficulty, description, inputs: JSON.parse(inputs), testcase, driverCode: JSON.parse(driverCode), slug, testFilePath, outputFilePath, userId: req.user.userId });
-
-				await problem.save();
-				res.status(200).send({ id: problem.id, message: "Problem published successfully" });
+				[testFilePath, outputFilePath] = (req.files[0].originalname.toLowerCase() === "testcase.txt") ? [path.join('uploads', slug, req.files[0].filename.toLowerCase()), path.join('uploads', slug, req.files[1].filename.toLowerCase())] : [path.join('uploads', slug, req.files[1].filename.toLowerCase()), path.join('uploads', slug, req.files[0].filename.toLowerCase())];
 			}
-			else res.status(400).json({ message: 'File could not be uploaded' });
+
+			problem = new Problem({ title, difficulty, description, inputs: JSON.parse(inputs), testcase, driverCode: JSON.parse(driverCode), slug, testFilePath, outputFilePath, userId: req.user.userId });
+
+			await problem.save();
+			console.log(driverCode);
+			// writeDriverFilesSync(slug, driverCode);
+			res.status(200).send({ id: problem.id, message: "Problem published successfully" });
 		}
 	} else res.status(400).send({ message: "Invalid request" });
 });
@@ -85,6 +91,7 @@ router.patch('/:slug', authenticateJwt, fileUpload.array("files", 2), async (req
 		if (req.files.length !== 0)
 			[updatedProblem.testFilePath, updatedProblem.outputFilePath] = (req.files[0].originalname.toLowerCase() === "testcase.txt") ? [path.join('uploads', req.files[0].filename.toLowerCase()), path.join('uploads', req.files[1].filename.toLowerCase())] : [path.join('uploads', req.files[1].filename.toLowerCase()), path.join('uploads', req.files[0].filename.toLowerCase())];
 
+		writeDriverFilesSync(slug, updatedProblem.driverCode);
 		await Problem.updateOne({ slug }, updatedProblem);
 		res.status(200).send({ message: "Problem updated successfully" });
 

@@ -11,8 +11,8 @@ import { initialUser } from "../store/atoms/user";
 
 function Appbar(): JSX.Element {
 	const navigate = useNavigate();
-	const setUser = useSetRecoilState(userDetails);
 	const name = useRecoilValue(nameState);
+	const setUser = useSetRecoilState(userDetails);
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
@@ -24,7 +24,7 @@ function Appbar(): JSX.Element {
 			})
 				.then((res) => {
 					console.log("Appbar request:")
-					console.log(res)
+					console.log(res);
 					setUser(res.data.user);
 				});
 		}

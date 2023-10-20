@@ -37,3 +37,16 @@ export declare const userInput: z.ZodObject<Pick<{
 export type SignupParams = z.infer<typeof signupInput>;
 export type SigninParams = z.infer<typeof signinInput>;
 export type UserParams = z.infer<typeof userInput>;
+export declare const languages: string[];
+export declare const code: string[];
+export declare const files: {
+    java: string[];
+    python: string[];
+    javascript: string[];
+};
+export interface LanguageCode {
+    driver: string;
+    solution: string;
+    result: string;
+}
+export declare const driverCode: Record<string, LanguageCode>;

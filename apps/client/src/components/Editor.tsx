@@ -30,8 +30,8 @@ function Editor(): JSX.Element {
 			}).then(res => {
 				const solution = { title: res.data.title, description: res.data.description, inputs: res.data.inputs, testcase: res.data.testcase, result: res.data.result }
 				setSolution({ isLoading: false, solution });
-				console.log("Response from Editor")
-				console.log(res.data)
+				console.log("Editor request:");
+				console.log(res.data);
 			})
 				.catch(e => {
 					setSolution({ isLoading: false, solution: initialSolution });

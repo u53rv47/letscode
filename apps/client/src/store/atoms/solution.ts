@@ -1,6 +1,6 @@
 import { atom } from "recoil";
-import { languages } from "../constants";
-import { initialInputs } from "../constants";
+// import { driverCode } from "common";
+import { initialInputs, driverCode } from "./problem";
 
 export const initialSolution = {
 	title: "", description: "", testcase: "", inputs: [initialInputs,],
@@ -18,7 +18,7 @@ export const solutionState = atom({
 
 export const resultState = atom({
 	key: "resultState",
-	default: { language: "java", result: languages.java.result }
+	default: { language: "java", result: driverCode.java.result }
 })
 
 export const testcaseState = atom({

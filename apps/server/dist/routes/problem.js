@@ -12,22 +12,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
+const fs_extra_1 = __importDefault(require("fs-extra"));
 const multer_1 = __importDefault(require("multer"));
+const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const auth_1 = __importDefault(require("../middleware/auth"));
 const db_1 = require("../db");
-function slugify(title) {
-    const cleanedTitle = title.replace(/^[0-9.]+/, '').trim();
-    return cleanedTitle.split(' ').join('-').toLowerCase();
-}
+const fileHandler_1 = require("../utils/fileHandler");
+const drivers_1 = __importDefault(require("../drivers"));
+(0, drivers_1.default)();
 const storage = multer_1.default.diskStorage({
     destination: function (req, file, cb) {
         const slug = slugify(req.body.title);
         const uploadDirectory = path_1.default.join("uploads", slug);
-        if (!fs_1.default.existsSync(uploadDirectory)) {
-            fs_1.default.mkdirSync(uploadDirectory, { recursive: true });
+        if (!fs_extra_1.default.existsSync(uploadDirectory)) {
+            fs_extra_1.default.mkdirSync(uploadDirectory, { recursive: true });
         }
         cb(null, uploadDirectory);
     },
@@ -36,6 +35,10 @@ const storage = multer_1.default.diskStorage({
     },
 });
 const fileUpload = (0, multer_1.default)({ storage });
+function slugify(title) {
+    const cleanedTitle = title.replace(/^[0-9.]+/, '').trim();
+    return cleanedTitle.split(' ').join('-').toLowerCase();
+}
 const router = express_1.default.Router();
 router.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -64,14 +67,14 @@ router.post("/publish", auth_1.default, fileUpload.array("files", 2), (req, res)
         if (problem)
             res.status(403).json({ message: 'Problem already exists' });
         else {
+            let [testFilePath, outputFilePath] = ["", ""];
             if (req.files.length !== 0) {
-                const [testFilePath, outputFilePath] = (req.files[0].originalname.toLowerCase() === "testcase.txt") ? [path_1.default.join('uploads', slug, req.files[0].filename.toLowerCase()), path_1.default.join('uploads', slug, req.files[1].filename.toLowerCase())] : [path_1.default.join('uploads', slug, req.files[1].filename.toLowerCase()), path_1.default.join('uploads', slug, req.files[0].filename.toLowerCase())];
-                problem = new db_1.Problem({ title, difficulty, description, inputs: JSON.parse(inputs), testcase, driverCode: JSON.parse(driverCode), slug, testFilePath, outputFilePath, userId: req.user.userId });
-                yield problem.save();
-                res.status(200).send({ id: problem.id, message: "Problem published successfully" });
+                [testFilePath, outputFilePath] = (req.files[0].originalname.toLowerCase() === "testcase.txt") ? [path_1.default.join('uploads', slug, req.files[0].filename.toLowerCase()), path_1.default.join('uploads', slug, req.files[1].filename.toLowerCase())] : [path_1.default.join('uploads', slug, req.files[1].filename.toLowerCase()), path_1.default.join('uploads', slug, req.files[0].filename.toLowerCase())];
             }
-            else
-                res.status(400).json({ message: 'File could not be uploaded' });
+            problem = new db_1.Problem({ title, difficulty, description, inputs: JSON.parse(inputs), testcase, driverCode: JSON.parse(driverCode), slug, testFilePath, outputFilePath, userId: req.user.userId });
+            yield problem.save();
+            console.log(driverCode);
+            res.status(200).send({ id: problem.id, message: "Problem published successfully" });
         }
     }
     else
@@ -85,6 +88,7 @@ router.patch('/:slug', auth_1.default, fileUpload.array("files", 2), (req, res) 
         updatedProblem.driverCode = JSON.parse(updatedProblem.driverCode);
         if (req.files.length !== 0)
             [updatedProblem.testFilePath, updatedProblem.outputFilePath] = (req.files[0].originalname.toLowerCase() === "testcase.txt") ? [path_1.default.join('uploads', req.files[0].filename.toLowerCase()), path_1.default.join('uploads', req.files[1].filename.toLowerCase())] : [path_1.default.join('uploads', req.files[1].filename.toLowerCase()), path_1.default.join('uploads', req.files[0].filename.toLowerCase())];
+        (0, fileHandler_1.writeDriverFilesSync)(slug, updatedProblem.driverCode);
         yield db_1.Problem.updateOne({ slug }, updatedProblem);
         res.status(200).send({ message: "Problem updated successfully" });
     }

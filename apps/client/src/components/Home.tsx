@@ -19,6 +19,12 @@ function Home(): JSX.Element {
 				setProblems(res.data);
 			});
 	}, [])
+	let posted = false;
+	for (let i = 0; i < problems.length; i++)
+		if (!!userId && userId === problems[i].userId) {
+			posted = true;
+			break;
+		}
 	return (
 		<Grid container style={{
 			width: "100%",
@@ -48,16 +54,15 @@ function Home(): JSX.Element {
 							<Typography color="gray" marginLeft="20px" width="80px">Status</Typography>
 							<Typography color="gray">Title</Typography>
 						</div>
-						<Typography color="gray" width="50px">Edit</Typography>
+						{posted && <Typography color="gray" width="50px">Edit</Typography>}
 					</div>
 
 					{problems.map((problem, index) => {
 						let editable = false;
-						if (userId && userId === problem._id)
+						if (!!userId && userId === problem.userId) 
 							editable = true;
-						return <Problem key={problem._id} title={problem.title} index={index} editable />
+						return <Problem key={problem._id} title={problem.title} index={index} editable={editable} />
 					})}
-
 				</div>
 
 			</Grid>
@@ -73,7 +78,6 @@ interface ProblemProps {
 }
 function Problem(props: ProblemProps): JSX.Element {
 	const bgColor = props.index % 2 === 0 ? "#eee" : "#fff";
-	const color = props.index % 2 === 0 ? "#fff" : "#eee";
 	const slug = props.title.split(".")[1].trim().split(" ").join("-").toLowerCase();
 
 	return (
