@@ -9,7 +9,6 @@ import CodeEditor from "./editor/CodeEditor";
 import Console from "./editor/Console";
 import { isSolutionLoading } from '../store/selectors/solution';
 import { solutionState, initialSolution } from '../store/atoms/solution';
-import { nameState } from '../store/selectors/user';
 import { Loading } from './Loading';
 
 function Editor(): JSX.Element {
@@ -21,11 +20,11 @@ function Editor(): JSX.Element {
 
 	useEffect(() => {
 		console.log(solution);
-		const name = localStorage.getItem("name");
-		if (name) {
+		const token = localStorage.getItem("token");
+		if (token) {
 			axios.get(`http://localhost:3000/solution/${slug}`, {
 				headers: {
-					"Authorization": "Bearer " + localStorage.getItem("token"),
+					"Authorization": "Bearer " + token
 				}
 			}).then(res => {
 				const solution = { title: res.data.title, description: res.data.description, inputs: res.data.inputs, testcase: res.data.testcase, result: res.data.result }
@@ -34,6 +33,7 @@ function Editor(): JSX.Element {
 				console.log(res.data);
 			})
 				.catch(e => {
+					console.log(e);
 					setSolution({ isLoading: false, solution: initialSolution });
 				});
 		} else navigate("/signin");

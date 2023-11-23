@@ -28,15 +28,20 @@ router.get("/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* (
         let solution = yield db_1.Solution.findOne({ problemId: problem._id });
         const result = {};
         common_1.languages.forEach((val, i, arr) => {
-            if (solution.language !== val)
-                result[val] = problem.driverCode[val].result;
+            if (solution) {
+                if (solution.language !== val)
+                    result[val] = problem.driverCode[val].result;
+                else
+                    result[val] = solution.solution;
+            }
             else
-                result[val] = solution.solution;
+                result[val] = problem.driverCode[val]["result"];
         });
         res.status(200).json({ title: problem.title, description: problem.description, testcase: problem.testcase, inputs: problem.inputs, result });
     }
     catch (err) {
-        res.status(404).send({ message: "Not found", error: err });
+        console.error(err);
+        res.status(400).send({ message: "Not found", error: err });
     }
 }));
 router.post("/:slug", auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -79,6 +84,7 @@ router.post("/:slug", auth_1.default, (req, res) => __awaiter(void 0, void 0, vo
                 const filePath = path_1.default.join(dirPath, "final_output.txt");
                 try {
                     const output = fs_extra_1.default.readFileSync(filePath).toString().split("\n");
+                    console.log(output);
                     if (output[0] === "failed") {
                         if (action === "run") {
                             let temp = codeRunner_1.consoleOutput.trim().split("\n");
@@ -152,8 +158,8 @@ router.post("/:slug", auth_1.default, (req, res) => __awaiter(void 0, void 0, vo
         }));
     }
     catch (err) {
+        console.error(err);
         (0, fileHandler_1.removeDirSync)(dirPath);
-        console.log(err);
         res.status(200).send({ result: "error", output: { message: "Something went wrong", error: err } });
     }
 }));

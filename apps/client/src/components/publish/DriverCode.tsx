@@ -30,11 +30,14 @@ export default function DriverCode(): JSX.Element {
 					<Typography>Code Stub</Typography>
 					<Result language="java"></Result>
 
-					<Typography marginTop="10px">Driver</Typography>
-					<Driver language="java"></Driver>
+					<Typography marginTop="10px">Helper</Typography>
+					<Helper language="java"></Helper>
 
 					<Typography marginTop="10px">Solution</Typography>
 					<Solution language="java"></Solution>
+
+					<Typography marginTop="10px">Driver</Typography>
+					<Driver language="java"></Driver>
 				</CustomTabPanel>
 
 
@@ -42,11 +45,14 @@ export default function DriverCode(): JSX.Element {
 					<Typography>Code Stub</Typography>
 					<Result language="python"></Result>
 
-					<Typography marginTop="10px">Driver</Typography>
-					<Driver language="python"></Driver>
+					<Typography marginTop="10px">Helper</Typography>
+					<Helper language="python"></Helper>
 
 					<Typography marginTop="10px">Solution</Typography>
 					<Solution language="python"></Solution>
+
+					<Typography marginTop="10px">Driver</Typography>
+					<Driver language="python"></Driver>
 				</CustomTabPanel>
 
 
@@ -54,11 +60,14 @@ export default function DriverCode(): JSX.Element {
 					<Typography>Code Stub</Typography>
 					<Result language="javascript"></Result>
 
-					<Typography marginTop="10px">Driver</Typography>
-					<Driver language="javascript"></Driver>
+					<Typography marginTop="10px">Helper</Typography>
+					<Helper language="javascript"></Helper>
 
 					<Typography marginTop="10px">Solution</Typography>
 					<Solution language="javascript"></Solution>
+
+					<Typography marginTop="10px">Driver</Typography>
+					<Driver language="javascript"></Driver>
 				</CustomTabPanel>
 			</div>
 		</div>
@@ -78,8 +87,9 @@ function Result(props: DriverProps): JSX.Element {
 			onChange={(e) => {
 				const newDriverCode = JSON.parse(JSON.stringify(driverCode));
 				newDriverCode[props.language] = {
-					result: e.target.value,
+					helper: driverCode[props.language].helper,
 					driver: driverCode[props.language].driver,
+					result: e.target.value,
 					solution: driverCode[props.language].solution,
 				}
 				setDriverCode(newDriverCode);
@@ -87,6 +97,24 @@ function Result(props: DriverProps): JSX.Element {
 	);
 }
 
+function Helper(props: DriverProps): JSX.Element {
+	const [driverCode, setDriverCode] = useRecoilState(problemDriverCode);
+
+	return (
+		<TextField multiline fullWidth size="small" minRows={5} value={driverCode[props.language].helper}
+			onChange={(e) => {
+				const newDriverCode = JSON.parse(JSON.stringify(driverCode));
+				newDriverCode[props.language] = {
+					helper: e.target.value,
+					driver: driverCode[props.language].driver,
+					result: driverCode[props.language].result,
+					solution: driverCode[props.language].solution,
+				}
+				console.log(newDriverCode)
+				setDriverCode(newDriverCode);
+			}}></TextField>
+	);
+}
 function Driver(props: DriverProps): JSX.Element {
 	const [driverCode, setDriverCode] = useRecoilState(problemDriverCode);
 
@@ -96,6 +124,7 @@ function Driver(props: DriverProps): JSX.Element {
 				const newDriverCode = JSON.parse(JSON.stringify(driverCode));
 				newDriverCode[props.language] = {
 					result: driverCode[props.language].result,
+					helper: driverCode[props.language].helper,
 					driver: e.target.value,
 					solution: driverCode[props.language].solution,
 				}
@@ -115,6 +144,7 @@ function Solution(props: DriverProps): JSX.Element {
 				const newDriverCode = JSON.parse(JSON.stringify(driverCode));
 				newDriverCode[props.language] = {
 					result: driverCode[props.language].result,
+					helper: driverCode[props.language].helper,
 					driver: driverCode[props.language].driver,
 					solution: e.target.value,
 				}

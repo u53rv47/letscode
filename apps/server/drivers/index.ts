@@ -3,8 +3,8 @@ import path from "path";
 import { languages, code, files, LanguageCode, driverCode } from "common";
 
 export default function updateDrivers(): void {
-	for (let i = 0; i < 3; i++) {
-		for (let j = 0; j < 3; j++) {
+	for (let i = 0; i < languages.length; i++) {
+		for (let j = 0; j < code.length; j++) {
 			const language = languages[i];
 			const filePath = path.join("drivers", languages[i], files[language as keyof typeof files][j]);
 			// console.log("FilePath: " + filePath);

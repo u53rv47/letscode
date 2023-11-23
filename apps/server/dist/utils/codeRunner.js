@@ -54,6 +54,8 @@ function runContainer(dirPath, language, action, cb) {
         docker.createContainer(dockerOptions, (err, container) => {
             if (err) {
                 console.error('Error creating container:', err.message);
+                stopContainer(container);
+                cb();
                 return;
             }
             container.start((startErr) => __awaiter(this, void 0, void 0, function* () {
@@ -130,15 +132,8 @@ function runContainer(dirPath, language, action, cb) {
                         });
                     });
                 }
-                container.stop(() => __awaiter(this, void 0, void 0, function* () {
-                    cb();
-                    exports.error = false;
-                    exports.consoleOutput = "";
-                    console.log("Container has been stopped.");
-                    container.remove(() => {
-                        console.log('Container has been removed.');
-                    });
-                }));
+                stopContainer(container);
+                cb();
             }));
         });
     }
@@ -148,3 +143,13 @@ function runContainer(dirPath, language, action, cb) {
     }
 }
 exports.runContainer = runContainer;
+function stopContainer(container) {
+    exports.error = false;
+    exports.consoleOutput = "";
+    container.stop(() => __awaiter(this, void 0, void 0, function* () {
+        console.log("Container has been stopped.");
+        container.remove(() => {
+            console.log('Container has been removed.');
+        });
+    }));
+}

@@ -26,14 +26,15 @@ export type UserParams = z.infer<typeof userInput>;
 
 
 export const languages = ["java", "python", "javascript"];
-export const code = ["driver", "solution", "result"];
+export const code = ["helper", "driver", "solution", "result"];
 export const files = {
-	java: ["Driver.java", "Solution.java", "Result.java"],
-	python: ["driver.py", "solution.py", "result.py"],
-	javascript: ["driver.js", "solution.js", "result.js"]
+	java: ["Helper.java", "Driver.java", "Solution.java", "Result.java"],
+	python: ["helper.py", "driver.py", "solution.py", "result.py"],
+	javascript: ["helper.js", "driver.js", "solution.js", "result.js"]
 };
 
 export interface LanguageCode {
+	helper: string;
 	driver: string;
 	solution: string;
 	result: string;
@@ -41,18 +42,26 @@ export interface LanguageCode {
 
 export const driverCode: Record<string, LanguageCode> = {
 	java: {
+		helper: "",
 		driver: "",
 		solution: "",
 		result: ""
 	},
 	python: {
+		helper: "",
 		driver: "",
 		solution: "",
 		result: ""
 	},
 	javascript: {
+		helper: "",
 		driver: "",
 		solution: "",
 		result: ""
 	},
 };
+
+export const initialDesc = '<p>Enter the problem description here...</p>'
+export const initialInputs = { name: "", type: "", add: true }
+
+export const initialProblem = { title: "", difficulty: "easy", description: initialDesc, inputs: [initialInputs,], testcase: "", driverCode }

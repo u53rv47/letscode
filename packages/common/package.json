@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "tsc && node dist/index.js",
     "lint": "eslint . --ext .ts",
@@ -10,7 +11,6 @@
   },
   "author": "Vijay Singh",
   "license": "ISC",
-  "types": "./dist/index.d.ts",
   "dependencies": {
     "zod": "^3.21.4"
   }

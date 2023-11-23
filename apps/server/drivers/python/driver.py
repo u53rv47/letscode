@@ -21,24 +21,26 @@ def check_output(expected, actual):
 
 
 def main():
-    ##
     # finalOutput: Template
     #
     # All passed:
     # # passed
     # # passed/total i.e.(104/104)
+    # if action == "run":
+    # # # actual output i.e. ([23, 34, 123] or [[32, 3], [5, 3]])
+    # # # expected output i.e. ([23, 34, 123] or [[32, 3], [5, 3]])
     #
     # Failed:
     # # failed
+    # # passed/total i.e (17/104)
     # # actual output i.e. ([23, 34, 123] or [[32, 3], [5, 3]])
     # # expected output i.e. ([23, 34, 123] or [[32, 3], [5, 3]])
-    # # failed tests i.e. ([2,7,89])
-    # # passed/total i.e (17/104)
+    # # action == "run" ? failed tests i.e. ([2,7,89]) : input i.e (1\n[2, 4,
+    # 5]\n[3, 5, 2])
     #
     # Error:
     # # error
     # # error i.e. (An error accured at ...)
-    # #
     final_output = ""
     final_output_file_name = "final_output.txt"
 
@@ -66,7 +68,6 @@ def main():
             targets.append(target)
         # EndBlock: Parse input from the file
 
-        failed = []
         count = 0
         passed = 0
 
@@ -74,6 +75,7 @@ def main():
         solution = Solution()
 
         if action == "run":
+            failed = []
             # Block: Call the methods from the Result and Solution class -- Yours to change
             # Change -- MethodName of Result and Solution class, type of actualOutput &
             # expectedOutput
@@ -125,12 +127,11 @@ def main():
                     passed += 1
                 elif first:
                     first = False
-                    failed.append(count + 1)
                     input_str = make_string(nums[count]) + "\n" + str(targets[count])
                     actual = actual_output
                     expected = expected_output
 
-            if not failed:
+            if first:
                 final_output += f"passed\n{passed}/{count}"
             else:
                 final_output += (

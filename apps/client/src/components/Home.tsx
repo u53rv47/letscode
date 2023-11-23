@@ -1,5 +1,4 @@
 import axios from "axios";
-import edit from '../assets/edit.png'
 import { useState, useEffect } from "react";
 import { Grid, Typography, Link } from "@mui/material";
 import EditIcon from "../assets/EditIcon";
@@ -59,7 +58,7 @@ function Home(): JSX.Element {
 
 					{problems.map((problem, index) => {
 						let editable = false;
-						if (!!userId && userId === problem.userId) 
+						if (!!userId && userId === problem.userId)
 							editable = true;
 						return <Problem key={problem._id} title={problem.title} index={index} editable={editable} />
 					})}

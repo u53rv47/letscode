@@ -45,8 +45,27 @@ export declare const files: {
     javascript: string[];
 };
 export interface LanguageCode {
+    helper: string;
     driver: string;
     solution: string;
     result: string;
 }
 export declare const driverCode: Record<string, LanguageCode>;
+export declare const initialDesc = "<p>Enter the problem description here...</p>";
+export declare const initialInputs: {
+    name: string;
+    type: string;
+    add: boolean;
+};
+export declare const initialProblem: {
+    title: string;
+    difficulty: string;
+    description: string;
+    inputs: {
+        name: string;
+        type: string;
+        add: boolean;
+    }[];
+    testcase: string;
+    driverCode: Record<string, LanguageCode>;
+};

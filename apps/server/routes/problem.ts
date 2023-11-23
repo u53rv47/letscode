@@ -1,12 +1,12 @@
+import path from 'path';
 import fs from "fs-extra";
 import multer from 'multer';
-import path from 'path';
+import { Problem } from "../db"
 import express, { Request, Response } from "express";
 import authenticateJwt from "../middleware/auth";
-import { Problem } from "../db"
 import { writeDriverFilesSync } from "../utils/fileHandler"
+import { initialProblem } from "common";
 import updateDrivers from "../drivers";
-updateDrivers()
 
 
 interface FileRequest extends express.Request {
@@ -43,7 +43,16 @@ router.get("/", async (req: Request, res: Response) => {
 		const problems = await Problem.find({}).select(["_id", "title", "userId"]);
 		res.status(200).json(problems);
 	} catch (err) {
-		res.status(404).send({ message: "Not found", error: err });
+		console.error(err);
+		res.status(400).send({ message: "Not found", error: err });
+	}
+});
+
+router.get("/initial", authenticateJwt, async (req: Request, res: Response) => {
+	try {
+		updateDrivers();
+	} finally {
+		res.status(200).json(initialProblem);
 	}
 });
 
@@ -51,9 +60,11 @@ router.get("/:slug", async (req: Request, res: Response) => {
 	const slug = req.params.slug;
 	try {
 		const problem = await Problem.findOne({ slug });
-		res.status(200).json(problem);
+		const result = { title: problem.title, difficulty: problem.difficulty, description: problem.description, inputs: problem.inputs, testcase: problem.testcase, driverCode: problem.driverCode };
+		res.status(200).json(result);
 	} catch (err) {
-		res.status(404).send({ message: "Not found", error: err });
+		console.error(err);
+		res.status(400).send({ message: "Not found", error: err });
 	}
 });
 
@@ -64,7 +75,7 @@ router.post("/publish", authenticateJwt, fileUpload.array("files", 2), async (re
 	if (title && description) {
 		let problem = await Problem.findOne({ title });
 		if (problem)
-			res.status(403).json({ message: 'Problem already exists' })
+			res.status(400).json({ message: 'Problem already exists' })
 		else {
 			let [testFilePath, outputFilePath] = ["", ""]
 			if (req.files.length !== 0) {
@@ -74,8 +85,8 @@ router.post("/publish", authenticateJwt, fileUpload.array("files", 2), async (re
 			problem = new Problem({ title, difficulty, description, inputs: JSON.parse(inputs), testcase, driverCode: JSON.parse(driverCode), slug, testFilePath, outputFilePath, userId: req.user.userId });
 
 			await problem.save();
-			console.log(driverCode);
-			// writeDriverFilesSync(slug, driverCode);
+			// console.log(driverCode);
+			writeDriverFilesSync(slug, driverCode);
 			res.status(200).send({ id: problem.id, message: "Problem published successfully" });
 		}
 	} else res.status(400).send({ message: "Invalid request" });
@@ -96,8 +107,8 @@ router.patch('/:slug', authenticateJwt, fileUpload.array("files", 2), async (req
 		res.status(200).send({ message: "Problem updated successfully" });
 
 	} catch (err) {
-		console.log(err)
-		res.status(404).send({ message: "Not found", error: err });
+		console.error(err);
+		res.status(400).send({ message: "Not found", error: err });
 	}
 })
 export default router;

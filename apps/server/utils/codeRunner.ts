@@ -44,6 +44,9 @@ export function runContainer(dirPath: string, language: string, action: string, 
 		docker.createContainer(dockerOptions, (err, container) => {
 			if (err) {
 				console.error('Error creating container:', err.message);
+				// cb(consoleOutput, error);
+				stopContainer(container);
+				cb();
 				return;
 			}
 			// Start the container
@@ -157,22 +160,24 @@ export function runContainer(dirPath: string, language: string, action: string, 
 						});
 					});
 				}
-
-				// Stop and remove the container
-				container.stop(async () => {
-					cb();
-					error = false;
-					consoleOutput = "";
-
-					console.log("Container has been stopped.")
-					container.remove(() => {
-						console.log('Container has been removed.');
-					});
-				});
+				stopContainer(container);
+				cb();
 			});
 		});
 	} catch (err) {
 		if (err)
 			console.error("Some error has occured: " + err);
 	}
+}
+
+function stopContainer(container: Docker.Container) {
+	error = false;
+	consoleOutput = "";
+	// Stop and remove the container
+	container.stop(async () => {
+		console.log("Container has been stopped.")
+		container.remove(() => {
+			console.log('Container has been removed.');
+		});
+	});
 }

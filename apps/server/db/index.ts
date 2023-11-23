@@ -21,18 +21,21 @@ const problemSchema = new mongoose.Schema({
 	testcase: String,
 	driverCode: {
 		java: {
-			result: { type: String },
+			helper: { type: String },
 			driver: { type: String },
+			result: { type: String },
 			solution: { type: String }
 		},
 		python: {
-			result: { type: String },
+			helper: { type: String },
 			driver: { type: String },
+			result: { type: String },
 			solution: { type: String }
 		},
 		javascript: {
-			result: { type: String },
+			helper: { type: String },
 			driver: { type: String },
+			result: { type: String },
 			solution: { type: String }
 		}
 	},

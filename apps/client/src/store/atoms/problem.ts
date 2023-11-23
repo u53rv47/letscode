@@ -1,9 +1,7 @@
 import { atom } from "recoil";
-// import { driverCode } from "common";
-import { code } from "common";
 
-console.log(code);
 export interface LanguageCode {
+	helper: string;
 	driver: string;
 	solution: string;
 	result: string;
@@ -11,16 +9,19 @@ export interface LanguageCode {
 
 export const driverCode: Record<string, LanguageCode> = {
 	java: {
+		helper: "",
 		driver: "",
 		solution: "",
 		result: ""
 	},
 	python: {
+		helper: "",
 		driver: "",
 		solution: "",
 		result: ""
 	},
 	javascript: {
+		helper: "",
 		driver: "",
 		solution: "",
 		result: ""

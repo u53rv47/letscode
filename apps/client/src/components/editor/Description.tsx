@@ -10,18 +10,6 @@ const options: HTMLReactParserOptions = {
 		// if (!attribs) {
 		// 	return;
 		// }
-
-		if (name === 'p') {
-			return <Typography >{domToReact(children, options)}</Typography>;
-		}
-
-		if (name === 'h2' || name === 'h3' || name === 'h4') {
-			return (
-				<Typography variant={name}>
-					{domToReact(children, options)}
-				</Typography>
-			);
-		}
 		if (name === 'pre') {
 			return <pre style={{
 				background: "#F7F7F8",
@@ -36,6 +24,20 @@ const options: HTMLReactParserOptions = {
 			return <code style={{
 				fontSize: "16px"
 			}}>{domToReact(children, options)}</code>
+		}
+
+		if (name === 'h2' || name === 'h3' || name === 'h4') {
+			return (
+				<Typography variant={name}>
+					{domToReact(children, options)}
+				</Typography>
+			);
+		}
+		if (name === "li") {
+			return <li><Typography >{domToReact(children, options)}</Typography></li>
+		}
+		if (name === "p") {
+			return <Typography >{domToReact(children, options)}</Typography>;
 		}
 	}
 };

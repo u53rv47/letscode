@@ -5,7 +5,7 @@ import authenticateJwt from "../middleware/auth";
 import { Problem, Solution, User } from "../db";
 import { languages } from "common";
 import { createDriverFiles, removeDirSync } from "../utils/fileHandler";
-import { consoleOutput, error, runContainer } from "../utils/codeRunner";
+import { error, consoleOutput, runContainer } from "../utils/codeRunner";
 
 const router = express.Router();
 
@@ -17,14 +17,18 @@ router.get("/:slug", async (req: Request, res: Response) => {
 
 		const result = {}
 		languages.forEach((val, i, arr) => {
-			if (solution.language !== val)
-				result[val] = problem.driverCode[val].result;
-			else result[val] = solution.solution;
+			if (solution) {
+				if (solution.language !== val)
+					result[val] = problem.driverCode[val].result;
+				else result[val] = solution.solution;
+			}
+			else result[val] = problem.driverCode[val]["result"];
 		});
 
 		res.status(200).json({ title: problem.title, description: problem.description, testcase: problem.testcase, inputs: problem.inputs, result });
 	} catch (err) {
-		res.status(404).send({ message: "Not found", error: err });
+		console.error(err);
+		res.status(400).send({ message: "Not found", error: err });
 	}
 });
 
@@ -75,6 +79,7 @@ router.post("/:slug", authenticateJwt, async (req: Request, res: Response) => {
 				const filePath = path.join(dirPath, "final_output.txt");
 				try {
 					const output = fs.readFileSync(filePath).toString().split("\n");
+					console.log(output);
 					if (output[0] === "failed") {
 						if (action === "run") {
 							// Transform console output
@@ -154,9 +159,8 @@ router.post("/:slug", authenticateJwt, async (req: Request, res: Response) => {
 
 
 	} catch (err) {
+		console.error(err);
 		removeDirSync(dirPath);
-
-		console.log(err);
 		res.status(200).send({ result: "error", output: { message: "Something went wrong", error: err } });
 	}
 });

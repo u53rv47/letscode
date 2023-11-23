@@ -31,13 +31,17 @@ class Driver {
 		 * All passed:
 		 * * passed
 		 * * passed/total i.e.(104/104)
+		 * if action == "run":
+		 * * * actual output i.e. ([23, 34, 123] or [[32, 3], [5, 3]])
+		 * * * expected output i.e. ([23, 34, 123] or [[32, 3], [5, 3]])
 		 * 
 		 * Failed:
 		 * * failed
+		 * * passed/total i.e (17/104)
 		 * * actual output i.e. ([23, 34, 123] or [[32, 3], [5, 3]])
 		 * * expected output i.e. ([23, 34, 123] or [[32, 3], [5, 3]])
-		 * * failed tests i.e. ([2,7,89])
-		 * * passed/total i.e (17/104)
+		 * * action == "run" ? failed tests i.e. ([2,7,89]) : input i.e (1\n[2, 4,
+		 * 5]\n[3, 5, 2])
 		 * 
 		 * Error:
 		 * * error
@@ -67,12 +71,11 @@ class Driver {
 			}
 			// EndBlock: Parse input from the file
 
-			ArrayList<Integer> failed = new ArrayList<>();
 			int count = 0, passed = 0;
-
 			Result result = new Result();
 			Solution solution = new Solution();
 			if ("run".equals(action)) {
+				ArrayList<Integer> failed = new ArrayList<>();
 				// Block: Call the methods from the Result and Solution class -- Yours to change
 				// Change -- MethodName of Result and Solution class, type of actualOutput &
 				// expectedOutput
@@ -127,21 +130,19 @@ class Driver {
 						passed++;
 					} else if (first) {
 						first = false;
-						failed.add(count + 1);
 						input = Arrays.toString(nums.get(count)) + "\n"
 								+ targets.get(count);
 						actual = actualOutput;
 						expected = expectedOutput;
 					}
 				}
-				if (failed.size() == 0)
+				if (first)
 					finalOutput += "passed\n" + passed + "/" + count;
 				else {
 					finalOutput += "failed\n"
 							+ passed + "/" + count + "\n"
 							+ Arrays.toString(actual) + "\n"
 							+ Arrays.toString(expected) + "\n"
-							+ failed.toString() + "\n"
 							+ input;
 				}
 				// EndBlock: Parse input from the file

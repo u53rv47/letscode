@@ -14,7 +14,8 @@ function writeDriverFilesSync(slug, driverCode) {
         for (let j = 0; j < 3; j++) {
             let filePath = path_1.default.join(dirPath, common_1.files[common_1.languages[i]][j]);
             let data = driverCode[common_1.languages[i]][common_1.code[j]];
-            fs_extra_1.default.writeFileSync(filePath, data);
+            if (data)
+                fs_extra_1.default.writeFileSync(filePath, data);
         }
     }
 }

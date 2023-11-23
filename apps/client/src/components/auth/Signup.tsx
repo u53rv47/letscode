@@ -2,17 +2,19 @@ import { useState } from "react";
 import axios from "axios";
 import { Card, Typography, Link, TextField, Button, Fade, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { userDetails } from "../../store/selectors/user";
 import { useSetRecoilState } from "recoil";
+import { userDetails } from "../../store/selectors/user";
 
-function Signin(): JSX.Element {
+function Signup(): JSX.Element {
 	const navigate = useNavigate();
 	const setUser = useSetRecoilState(userDetails);
+	const [name, setName] = useState("");
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 
 	const [alertVisibility, setAlertVisibility] = useState(false);
 	const [alertMessage, setAlertMessage] = useState('');
+
 
 	return (
 		<div style={{
@@ -35,7 +37,7 @@ function Signin(): JSX.Element {
 						<Typography variant={"h6"} style={{
 							marginBottom: 30
 						}}>
-							Welcome back to Let's code.
+							Welcome to Let's code.
 						</Typography>
 					</div>
 					<div>
@@ -51,8 +53,19 @@ function Signin(): JSX.Element {
 							</div>}
 						<TextField
 							fullWidth
+							label="Name"
+							type="text"
+							variant="outlined"
+							size="small"
+							onChange={e => {
+								setName(e.target.value);
+							}}
+						/>
+						<br /><br />
+						<TextField
+							fullWidth
 							label="Email or Username"
-							type="email"
+							type="username"
 							variant="outlined"
 							size="small"
 							onChange={e => {
@@ -80,8 +93,9 @@ function Signin(): JSX.Element {
 							style={{
 								textTransform: "initial"
 							}}
-							onClick={async () => {
-								axios.post("http://localhost:3000/user/signin", {
+							onClick={() => {
+								axios.post("http://localhost:3000/user/signup", {
+									name,
 									username,
 									password
 								})
@@ -100,20 +114,14 @@ function Signin(): JSX.Element {
 										}, 3000);
 									});
 							}}
-						> Sign in</Button>
+						> Sign up</Button>
 						<div style={{
 							display: "flex",
-							justifyContent: "space-between",
-							marginTop: 20
+							justifyContent: "center"
 						}}>
-							<Typography paddingLeft={1} >
-								<Link href="/reset-password" underline="none">
-									Forgot Password?
-								</Link>
-							</Typography>
-							<Typography paddingRight={1} >
-								<Link href="/signup" underline="none">
-									New here? Sign up
+							<Typography paddingLeft={1} marginTop={2} >
+								<Link href="/signin" underline="none">
+									Already an account? Sign in
 								</Link>
 							</Typography>
 						</div>
@@ -125,4 +133,4 @@ function Signin(): JSX.Element {
 	)
 }
 
-export default Signin;
+export default Signup;

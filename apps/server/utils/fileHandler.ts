@@ -9,7 +9,8 @@ export function writeDriverFilesSync(slug, driverCode): void {
 		for (let j = 0; j < 3; j++) {
 			let filePath = path.join(dirPath, files[languages[i]][j]);
 			let data = driverCode[languages[i]][code[j]];
-			fs.writeFileSync(filePath, data);
+			if (data)
+				fs.writeFileSync(filePath, data);
 		}
 	}
 }

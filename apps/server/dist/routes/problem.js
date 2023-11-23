@@ -12,15 +12,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const path_1 = __importDefault(require("path"));
 const fs_extra_1 = __importDefault(require("fs-extra"));
 const multer_1 = __importDefault(require("multer"));
-const path_1 = __importDefault(require("path"));
+const db_1 = require("../db");
 const express_1 = __importDefault(require("express"));
 const auth_1 = __importDefault(require("../middleware/auth"));
-const db_1 = require("../db");
 const fileHandler_1 = require("../utils/fileHandler");
+const common_1 = require("common");
 const drivers_1 = __importDefault(require("../drivers"));
-(0, drivers_1.default)();
 const storage = multer_1.default.diskStorage({
     destination: function (req, file, cb) {
         const slug = slugify(req.body.title);
@@ -46,17 +46,28 @@ router.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(200).json(problems);
     }
     catch (err) {
-        res.status(404).send({ message: "Not found", error: err });
+        console.error(err);
+        res.status(400).send({ message: "Not found", error: err });
+    }
+}));
+router.get("/initial", auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        (0, drivers_1.default)();
+    }
+    finally {
+        res.status(200).json(common_1.initialProblem);
     }
 }));
 router.get("/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const slug = req.params.slug;
     try {
         const problem = yield db_1.Problem.findOne({ slug });
-        res.status(200).json(problem);
+        const result = { title: problem.title, difficulty: problem.difficulty, description: problem.description, inputs: problem.inputs, testcase: problem.testcase, driverCode: problem.driverCode };
+        res.status(200).json(result);
     }
     catch (err) {
-        res.status(404).send({ message: "Not found", error: err });
+        console.error(err);
+        res.status(400).send({ message: "Not found", error: err });
     }
 }));
 router.post("/publish", auth_1.default, fileUpload.array("files", 2), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -65,7 +76,7 @@ router.post("/publish", auth_1.default, fileUpload.array("files", 2), (req, res)
     if (title && description) {
         let problem = yield db_1.Problem.findOne({ title });
         if (problem)
-            res.status(403).json({ message: 'Problem already exists' });
+            res.status(400).json({ message: 'Problem already exists' });
         else {
             let [testFilePath, outputFilePath] = ["", ""];
             if (req.files.length !== 0) {
@@ -73,7 +84,7 @@ router.post("/publish", auth_1.default, fileUpload.array("files", 2), (req, res)
             }
             problem = new db_1.Problem({ title, difficulty, description, inputs: JSON.parse(inputs), testcase, driverCode: JSON.parse(driverCode), slug, testFilePath, outputFilePath, userId: req.user.userId });
             yield problem.save();
-            console.log(driverCode);
+            (0, fileHandler_1.writeDriverFilesSync)(slug, driverCode);
             res.status(200).send({ id: problem.id, message: "Problem published successfully" });
         }
     }
@@ -93,8 +104,8 @@ router.patch('/:slug', auth_1.default, fileUpload.array("files", 2), (req, res) 
         res.status(200).send({ message: "Problem updated successfully" });
     }
     catch (err) {
-        console.log(err);
-        res.status(404).send({ message: "Not found", error: err });
+        console.error(err);
+        res.status(400).send({ message: "Not found", error: err });
     }
 }));
 exports.default = router;

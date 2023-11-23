@@ -1,7 +1,7 @@
 import { RecoilRoot } from "recoil";
 import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
-import Signin from "./components/user/Signin";
-import Signup from "./components/user/Signup";
+import Signin from "./components/auth/Signin";
+import Signup from "./components/auth/Signup";
 import Publish from "./components/Publish";
 import Appbar from "./components/Appbar";
 import Home from "./components/Home";

@@ -18,27 +18,32 @@ function Edit(): JSX.Element {
 	const setProblem = useSetRecoilState(problemState);
 
 	useEffect(() => {
-		axios.get(`http://localhost:3000/problem/${slug}`, {
-			headers: {
-				"Authorization": "Bearer " + localStorage.getItem("token")
-			}
-		}).then(res => {
-			const inputs = res.data.inputs.reduce((inputs, curr, index) => {
-				const input = { name: curr.name, type: curr.type, add: false }
-				inputs.push(input)
-				return inputs;
-			}, [])
-			inputs.push(initialInputs)
+		// Don't need token as Edit Button won't be visible
+		const savedProblem = localStorage.getItem("problem");
+		if (savedProblem)
+			setProblem(JSON.parse(savedProblem));
+		else
+			axios.get(`http://localhost:3000/problem/${slug}`, {
+				headers: {
+					"Authorization": "Bearer " + localStorage.getItem("token")
+				}
+			}).then(res => {
+				const inputs = res.data.inputs.reduce((inputs, curr, index) => {
+					const input = { name: curr.name, type: curr.type, add: false }
+					inputs.push(input)
+					return inputs;
+				}, [])
+				inputs.push(initialInputs);
 
-			const problem = { title: res.data.title, difficulty: res.data.difficulty, description: res.data.description, inputs, testcase: res.data.testcase, driverCode: res.data.driverCode }
-			setProblem({ isLoading: false, problem });
-			console.log("Response(Edit)")
-			console.log(res.data)
-		})
-			.catch(e => {
-				setProblem({ isLoading: false, problem: initialProblem });
-			});
-	}, [])
+				const problem = { title: res.data.title, difficulty: res.data.difficulty, description: res.data.description, inputs, testcase: res.data.testcase, driverCode: res.data.driverCode }
+				setProblem({ isLoading: false, problem });
+				console.log("Response(Edit)")
+				console.log(res.data)
+			})
+				.catch(e => {
+					setProblem({ isLoading: false, problem: initialProblem });
+				});
+	}, []);
 
 	return (
 		<Grid container style={{
@@ -229,6 +234,7 @@ function SubmitPanel(): JSX.Element {
 							.then(res => {
 								console.log(res)
 								console.log(res.data.message);
+								localStorage.removeItem("problem");
 								navigate("/");
 							})
 							.catch(error => {
@@ -262,6 +268,7 @@ function SubmitPanel(): JSX.Element {
 						textTransform: "initial"
 					}}
 					onClick={() => {
+						localStorage.removeItem("problem");
 						setProblem(initialProblem);
 						setFiles([]);
 					}}

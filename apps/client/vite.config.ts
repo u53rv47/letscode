@@ -5,7 +5,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [
     react(),
-
     // Workaround
     {
       name: 'load+transform-js-files-as-jsx',

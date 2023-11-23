@@ -1,8 +1,9 @@
 import axios from "axios";
+import { useEffect } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { Grid, TextField, Button, Typography, Select, MenuItem, FormControl, InputLabel, Input } from "@mui/material";
 import { problemTitle, problemTestcase, problemDetails, problemDifficulty, problemInputs } from "../store/selectors/problem";
-import { fileState, initialProblem } from "../store/atoms/problem";
+import { fileState, initialProblem, initialInputs } from "../store/atoms/problem";
 import TinyMCE from "./publish/TinyMCE";
 import Inputs from "./publish/Inputs";
 import DriverCode from "./publish/DriverCode";
@@ -12,12 +13,35 @@ import { useNavigate } from "react-router-dom";
 function Publish(): JSX.Element {
 	const setProblem = useSetRecoilState(problemDetails);
 
-	// useEffect(() => {
-	// 	const problem = localStorage.getItem("problem")
-	// 	if (problem)
-	// 		setProblem(JSON.parse(problem));
-	// 	else setProblem(initialProblem)
-	// }, [])
+	useEffect(() => {
+		// Don't need token as Publish Button won't be visible
+		const savedProblem = localStorage.getItem("problem");
+		if (savedProblem)
+			setProblem(JSON.parse(savedProblem));
+		else
+			axios.get(`http://localhost:3000/problem/initial`, {
+				headers: {
+					"Authorization": "Bearer " + localStorage.getItem("token")
+				}
+			}).then(res => {
+				console.log("Response(Publish)")
+				console.log(res)
+
+				const inputs = res.data.inputs.reduce((inputs, curr, index) => {
+					const input = { name: curr.name, type: curr.type, add: false }
+					inputs.push(input)
+					return inputs;
+				}, [])
+				if (inputs.length == 0)
+					inputs.push(initialInputs);
+
+				const problem = { title: res.data.title, difficulty: res.data.difficulty, description: res.data.description, inputs, testcase: res.data.testcase, driverCode: res.data.driverCode }
+				setProblem(problem);
+			})
+				.catch(e => {
+					setProblem(initialProblem);
+				});
+	}, []);
 
 	return (
 		<Grid container style={{
@@ -200,6 +224,7 @@ function SubmitPanel(): JSX.Element {
 							},
 						})
 							.then(res => {
+								localStorage.removeItem("problem");
 								console.log(res.data.id);
 								console.log(res.data.message);
 								navigate("/");
@@ -217,8 +242,8 @@ function SubmitPanel(): JSX.Element {
 						textTransform: "initial"
 					}}
 					onClick={() => {
-						console.log(problem)
-						localStorage.setItem("problem", JSON.stringify(problem))
+						console.log(problem);
+						localStorage.setItem("problem", JSON.stringify(problem));
 					}}
 				>Save</Button>
 			</div>
@@ -236,6 +261,7 @@ function SubmitPanel(): JSX.Element {
 					}}
 					onClick={() => {
 						setProblem(initialProblem);
+						localStorage.removeItem("problem");
 						setFiles([]);
 					}}
 				>Reset</Button>

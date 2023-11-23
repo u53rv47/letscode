@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Box, Tabs, Tab, Typography, TextField, Button, dividerClasses, CircularProgress } from '@mui/material';
-import { Add, Cancel, SettingsApplications } from "@mui/icons-material";
+import { Box, Tabs, Tab, Typography, TextField, Button } from '@mui/material';
+import { Add } from "@mui/icons-material";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { responseOutput, responseResult, solutionInputs, solutionTestcase } from '../../store/selectors/solution';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { actionState, responseState, resultState, testcaseState } from '../../store/atoms/solution';
 import { Loading } from '../Loading';
-import { act } from 'react-dom/test-utils';
 
 {/* <CaseButtons len={len} setBtn={setBtn} /> */ }
 function Console(): JSX.Element {
@@ -169,6 +168,7 @@ function ButtonPanel(props: BtnPanelProp): JSX.Element {
 						headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
 					})
 						.then(res => {
+							console.log(res.data);
 							setResponse(res.data);
 							setAction({ isLoading: false, action: true });
 						}).catch(e => {
@@ -191,6 +191,7 @@ function ButtonPanel(props: BtnPanelProp): JSX.Element {
 					headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
 				})
 					.then(res => {
+						console.log(res.data);
 						setResponse(res.data);
 						setAction({ isLoading: false, action: false });
 					}).catch(e => {
@@ -324,7 +325,7 @@ function Error(props: ErrorProps) {
 			minHeight: "80px"
 		}}>
 			{error.split("\n").map((error, idx) => <Typography key={"error " + idx}
-				color="error" sx={{whiteSpace: "pre"}}>{error}</Typography>)}
+				color="error" sx={{ whiteSpace: "pre" }}>{error}</Typography>)}
 		</div>
 	</div>
 }
